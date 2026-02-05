@@ -25,9 +25,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = async (e: FormEvent) => {
@@ -50,19 +48,35 @@ export default function Home() {
     }
   };
 
+  const preloadImages = async (element: HTMLElement) => {
+    const images = element.getElementsByTagName('img');
+    const promises = Array.from(images).map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    });
+    await Promise.all(promises);
+  };
+
   const handleDownload = async () => {
     if (cardRef.current) {
       setIsDownloading(true);
       setError(null);
 
       try {
+        await preloadImages(cardRef.current);
         await document.fonts.ready;
-        await new Promise(resolve => setTimeout(resolve, 500));
+
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         const dataUrl = await toPng(cardRef.current, {
           cacheBust: true,
           pixelRatio: window.devicePixelRatio > 2 ? 2 : 3,
           quality: 0.95,
+          // @ts-ignore
+          useCORS: true,
           filter: (node) => {
             const el = node as HTMLElement;
             return !(el.classList && el.classList.contains('noise-bg'));
@@ -78,11 +92,6 @@ export default function Home() {
 
         if (isIOS) {
           setGeneratedImage(dataUrl);
-          try {
-            download(dataUrl, `weekly-capsule-${username}.png`);
-          } catch {
-            // Ignore
-          }
         } else {
           download(dataUrl, `weekly-capsule-${username}.png`);
         }
@@ -110,61 +119,60 @@ export default function Home() {
         </div>
 
         <div className="container mx-auto px-6 py-12 relative z-10 grow flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-12">
-
           <Hero
               username={username}
               setUsername={setUsername}
               onSearch={handleSearch}
               loading={loading}
           />
-
           <Preview
               data={data}
               isDownloading={isDownloading}
               onDownload={handleDownload}
               cardRef={cardRef}
           />
-
         </div>
 
         <Footer />
-
         <ErrorToast message={error} onClose={() => setError(null)} />
 
+        {/* MODAL CORRIGIDO PARA IPHONE */}
         <AnimatePresence>
           {generatedImage && (
               <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-100 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6"
+                  className="fixed inset-0 z-100 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6"
                   onClick={() => setGeneratedImage(null)}
               >
+                {/* Container com scroll caso a tela seja muito pequena */}
                 <div
-                    className="bg-neutral-900 p-4 rounded-2xl max-w-sm w-full flex flex-col gap-4 text-center border border-white/10 shadow-2xl"
+                    className="bg-neutral-900 p-4 rounded-2xl w-full max-w-sm flex flex-col gap-3 text-center border border-white/10 shadow-2xl max-h-[85vh] overflow-y-auto scrollbar-hide"
                     onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold text-white">Imagem Pronta! 🎉</h3>
-                    <p className="text-sm text-neutral-400">
-                      Se o download não iniciou, <span className="text-red-500 font-bold">segure na imagem</span> e escolha &quot;Salvar no Fotos&quot;.
+                  <div className="space-y-1 shrink-0">
+                    <h3 className="text-lg font-bold text-white">Prontinho! 🎉</h3>
+                    <p className="text-xs text-neutral-400 px-2">
+                      <span className="text-red-500 font-bold">Segure na imagem</span> para salvar no Fotos.
                     </p>
                   </div>
 
-                  <div className="relative w-full aspect-9/16">
+                  {/* Wrapper da imagem com altura limitada */}
+                  <div className="relative w-full h-auto min-h-75 max-h-[55vh] shrink-0 bg-neutral-950 rounded-lg overflow-hidden border border-white/5">
                     <Image
                         src={generatedImage}
                         alt="Seu resumo semanal"
                         fill
                         unoptimized
-                        className="rounded-xl shadow-lg border border-white/5 object-contain select-none pointer-events-auto"
+                        className="object-contain"
                     />
                   </div>
 
                   <Button
                       onClick={() => setGeneratedImage(null)}
                       variant="secondary"
-                      className="w-full font-bold"
+                      className="w-full font-bold shrink-0"
                   >
                     Fechar
                   </Button>
