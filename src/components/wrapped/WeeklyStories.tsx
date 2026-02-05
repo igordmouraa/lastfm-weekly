@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import { WeeklyData, LastFmImage, LastFmTrack, LastFmArtist } from "@/types/lastfm";
 
 interface WeeklyStoriesProps {
@@ -15,17 +15,44 @@ const getImageUrl = (images: LastFmImage[]) => {
     return mega || extralarge || large || null;
 };
 
-const ProxyImage = ({ src, alt, className }: { src: string, alt: string, className?: string }) => {
-    // Aponta para sua nova rota de API
-    const proxyUrl = `/api/proxy?url=${encodeURIComponent(src)}`;
+const Base64Image = ({ src, alt, className }: { src: string, alt: string, className?: string }) => {
+    const [base64, setBase64] = useState<string | null>(null);
+
+    useEffect(() => {
+        let active = true;
+
+        const loadBase64 = async () => {
+            try {
+                const proxyUrl = `/api/proxy?url=${encodeURIComponent(src)}`;
+                const res = await fetch(proxyUrl);
+                if (!res.ok) throw new Error('Falha no proxy');
+
+                const blob = await res.blob();
+
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (active && typeof reader.result === 'string') {
+                        setBase64(reader.result);
+                    }
+                };
+                reader.readAsDataURL(blob);
+            } catch (err) {
+                console.error("Erro ao carregar base64", err);
+            }
+        };
+
+        if (src) loadBase64();
+
+        return () => { active = false; };
+    }, [src]);
+    if (!base64) return <div className={`bg-neutral-800 animate-pulse ${className}`} />;
 
     return (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
-            src={proxyUrl}
+            src={base64}
             alt={alt}
             className={className}
-            crossOrigin="anonymous"
         />
     );
 };
@@ -39,10 +66,13 @@ const LastFmLogo = () => (
 export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ data }, ref) => {
     const { user, artists, tracks, totalScrobbles } = data;
 
+    const fontStyle = { fontFamily: 'var(--font-geist-sans), sans-serif' };
+
     return (
         <div
             ref={ref}
-            className="w-90 h-160 bg-neutral-950 p-6 text-white flex flex-col shadow-2xl relative overflow-hidden font-sans justify-between"
+            style={fontStyle} // Aplica fonte forçada
+            className="w-90 h-160 bg-neutral-950 p-6 text-white flex flex-col shadow-2xl relative overflow-hidden select-none"
         >
             {/* Background Gradient */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-red-900/20 via-neutral-950 to-neutral-950 pointer-events-none" />
@@ -77,10 +107,9 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                                 <li key={`${track.name}-${i}`} className="flex items-center gap-3 group">
                                     <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
 
-                                    {/* Capa da Música via Proxy */}
                                     <div className="relative w-9 h-9 rounded overflow-hidden bg-white/10 shrink-0 shadow-lg border border-white/10">
                                         {trackImg && (
-                                            <ProxyImage
+                                            <Base64Image
                                                 src={trackImg}
                                                 alt={track.name}
                                                 className="w-full h-full object-cover"
