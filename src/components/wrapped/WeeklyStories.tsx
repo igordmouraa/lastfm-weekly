@@ -77,7 +77,7 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                                     </div>
 
                                     <div className="flex flex-col min-w-0 justify-center">
-                                        <span className="font-bold text-[11px] leading-tight w-full group-hover:text-red-400 transition-colors">
+                                        <span className="font-bold text-[11px] leading-tight w-full">
                                             {track.name}
                                         </span>
                                         <span className="text-[10px] text-neutral-400 truncate w-full leading-tight mt-0.5">
@@ -101,7 +101,7 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                                 <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
 
                                 <div className="flex flex-col items-end min-w-0 justify-center">
-                                    <span className="font-bold text-[11px] leading-tight w-full group-hover:text-red-400 transition-colors">
+                                    <span className="font-bold text-[11px] leading-tight w-full">
                                         {artist.name}
                                     </span>
                                     <span className="text-[10px] text-neutral-400 bg-white/5 px-1.5 rounded-sm mt-0.5 leading-tight inline-block">
@@ -116,15 +116,18 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
 
             {/* Footer */}
             <div className="z-10 pt-4 border-t border-white/10 mt-auto">
-                <div className="flex justify-between items-end">
-                    <div>
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-0.5">Tempo total (Est.)</p>
+                <div className="flex justify-between items-start">
+                    {/* Bloco Esquerdo: Tempo */}
+                    <div className="flex flex-col justify-end">
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Tempo total (Est.)</p>
                         <p className="text-3xl font-black text-white tracking-tighter leading-none">
                             {(totalScrobbles * 3.5).toFixed(0)} <span className="text-sm font-bold text-red-500">min</span>
                         </p>
                     </div>
-                    <div className="text-right">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-0.5">Total Plays</p>
+
+                    {/* Bloco Direito: Scrobbles */}
+                    <div className="flex flex-col justify-end h-full text-right pb-0.5">
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Scrobbles</p>
                         <p className="text-xl font-bold text-white tracking-tight leading-none">
                             {totalScrobbles.toLocaleString()}
                         </p>
