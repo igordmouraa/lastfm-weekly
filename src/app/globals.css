@@ -122,4 +122,22 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Scrollbar Customizada */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a; /* neutral-950 */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #262626; /* neutral-800 */
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #ef4444; /* red-500 */
+  }
 }
