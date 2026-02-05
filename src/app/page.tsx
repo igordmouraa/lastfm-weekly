@@ -71,9 +71,11 @@
 
           await new Promise(resolve => setTimeout(resolve, 800));
 
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
           const dataUrl = await toPng(cardRef.current, {
             cacheBust: true,
-            pixelRatio: window.devicePixelRatio > 2 ? 2 : 3,
+            pixelRatio: isMobile ? 2 : 3,
             quality: 0.95,
             // @ts-ignore
             useCORS: true,
