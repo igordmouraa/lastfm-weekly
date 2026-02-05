@@ -1,3 +1,5 @@
+// types/lastfm.ts
+
 export interface LastFmImage {
     size: string;
     "#text": string;
@@ -8,7 +10,7 @@ export interface LastFmArtist {
     playcount?: string;
     mbid?: string;
     url?: string;
-    image: LastFmImage[];
+    image?: LastFmImage[]; // Opcional, pois nem sempre temos a imagem do artista no recentTracks
 }
 
 export interface LastFmTrack {
@@ -21,60 +23,48 @@ export interface LastFmTrack {
         mbid?: string;
         url?: string;
     };
+    // AQUI está a imagem do álbum que aparece na música
     image: LastFmImage[];
+    album?: {
+        "#text": string;
+        mbid?: string;
+    };
+    date?: {
+        uts: string;
+        "#text": string;
+    };
 }
 
 export interface LastFmUser {
     name: string;
     image: LastFmImage[];
-    country: string;
+    country?: string; // Opcional para evitar erros
     playcount: string;
 }
 
-export interface UserResponse {
+// Resposta da API user.getInfo
+export interface LastFmUserInfoResponse {
     user: LastFmUser;
-    error?: number;
-    message?: string;
 }
 
-export interface TopArtistsResponse {
-    topartists: {
-        artist: LastFmArtist[];
-    };
-    error?: number;
-    message?: string;
-}
-
-export interface TopTracksResponse {
-    toptracks: {
+// Resposta da API user.getRecentTracks (Estrutura completa para uso se necessário)
+export interface RecentTracksResponse {
+    recenttracks: {
         track: LastFmTrack[];
-    };
-    error?: number;
-    message?: string;
-}
-
-export interface TrackInfoResponse {
-    track: {
-        album?: {
-            image: LastFmImage[];
+        '@attr': {
+            user: string;
+            page: string;
+            perPage: string;
+            totalPages: string;
+            total: string;
         };
     };
-    error?: number;
-    message?: string;
 }
 
-export interface ArtistInfoResponse {
-    artist: {
-        image: LastFmImage[];
-    };
-    error?: number;
-    message?: string;
-}
-
+// Estrutura final que vai para o Front-end
 export interface WeeklyData {
     user: LastFmUser;
     artists: LastFmArtist[];
     tracks: LastFmTrack[];
     totalScrobbles: number;
-    period: string;
 }
