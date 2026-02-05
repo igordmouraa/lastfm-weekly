@@ -1,17 +1,33 @@
 'use client';
 
 import { forwardRef } from 'react';
+import { WeeklyData, LastFmImage, LastFmTrack, LastFmArtist } from "@/types/lastfm";
+
 interface WeeklyStoriesProps {
-    data: any;
+    data: WeeklyData;
 }
 
-const getImageUrl = (images: any[]) => {
+const getImageUrl = (images: LastFmImage[]) => {
     if (!images || !Array.isArray(images)) return null;
-
-    const mega = images.find((img: any) => img.size === 'mega')?.['#text'];
-    const extralarge = images.find((img: any) => img.size === 'extralarge')?.['#text'];
-    const large = images.find((img: any) => img.size === 'large')?.['#text'];
+    const mega = images.find((img) => img.size === 'mega')?.['#text'];
+    const extralarge = images.find((img) => img.size === 'extralarge')?.['#text'];
+    const large = images.find((img) => img.size === 'large')?.['#text'];
     return mega || extralarge || large || null;
+};
+
+const ProxyImage = ({ src, alt, className }: { src: string, alt: string, className?: string }) => {
+    // Aponta para sua nova rota de API
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(src)}`;
+
+    return (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+            src={proxyUrl}
+            alt={alt}
+            className={className}
+            crossOrigin="anonymous"
+        />
+    );
 };
 
 const LastFmLogo = () => (
@@ -26,12 +42,12 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
     return (
         <div
             ref={ref}
-            className="w-[360px] h-[640px] bg-neutral-950 p-6 text-white flex flex-col shadow-2xl relative overflow-hidden font-sans justify-between"
+            className="w-90 h-160 bg-neutral-950 p-6 text-white flex flex-col shadow-2xl relative overflow-hidden font-sans justify-between"
         >
-            {/* Background Sutil Vermelho */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-red-900/20 via-neutral-950 to-neutral-950 pointer-events-none" />
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-red-900/20 via-neutral-950 to-neutral-950 pointer-events-none" />
 
-            {/* --- HEADER --- */}
+            {/* Header */}
             <div className="z-10 mt-2 mb-4">
                 <div className="flex justify-between items-start mb-2">
                     <h2 className="text-xs font-bold text-red-500 tracking-widest uppercase mt-1">
@@ -46,39 +62,39 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                 <p className="text-sm text-neutral-400 font-medium">@{user.name}</p>
             </div>
 
-            {/* --- GRID SPLIT --- */}
-            <div className="grid grid-cols-2 gap-x-6 z-10 flex-grow h-full py-2">
+            {/* Conteúdo Grid */}
+            <div className="grid grid-cols-2 gap-x-6 z-10 grow h-full py-2">
 
-                {/* LADO ESQUERDO: TOP MÚSICAS */}
+                {/* Esquerda: Músicas */}
                 <div className="flex flex-col h-full">
                     <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-4">
                         Top Músicas
                     </h3>
-                    <ul className="flex flex-col justify-between h-full max-h-[320px]">
-                        {tracks.slice(0, 5).map((track: any, i: number) => {
+                    <ul className="flex flex-col justify-between h-full max-h-80">
+                        {tracks.slice(0, 5).map((track: LastFmTrack, i: number) => {
                             const trackImg = getImageUrl(track.image);
                             return (
                                 <li key={`${track.name}-${i}`} className="flex items-center gap-3 group">
-                                    <span className="text-sm font-bold text-red-500 min-w-[12px]">{i + 1}</span>
+                                    <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
 
+                                    {/* Capa da Música via Proxy */}
                                     <div className="relative w-9 h-9 rounded overflow-hidden bg-white/10 shrink-0 shadow-lg border border-white/10">
                                         {trackImg && (
-                                            <img
+                                            <ProxyImage
                                                 src={trackImg}
                                                 alt={track.name}
                                                 className="w-full h-full object-cover"
-                                                crossOrigin="anonymous"
                                             />
                                         )}
                                     </div>
 
                                     <div className="flex flex-col min-w-0 justify-center">
-                                    <span className="font-bold text-[11px] leading-tight w-full group-hover:text-red-400 transition-colors">
-                                        {track.name}
-                                    </span>
+                                        <span className="font-bold text-[11px] leading-tight w-full group-hover:text-red-400 transition-colors">
+                                            {track.name}
+                                        </span>
                                         <span className="text-[10px] text-neutral-400 truncate w-full leading-tight mt-0.5">
-                                        {track.artist.name}
-                                    </span>
+                                            {track.artist.name}
+                                        </span>
                                     </div>
                                 </li>
                             );
@@ -86,23 +102,23 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                     </ul>
                 </div>
 
-                {/* LADO DIREITO: TOP ARTISTAS */}
+                {/* Direita: Artistas */}
                 <div className="flex flex-col h-full">
                     <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-4 text-right">
                         Top Artistas
                     </h3>
-                    <ul className="flex flex-col justify-between h-full max-h-[320px]">
-                        {artists.slice(0, 5).map((artist: any, i: number) => (
+                    <ul className="flex flex-col justify-between h-full max-h-80">
+                        {artists.slice(0, 5).map((artist: LastFmArtist, i: number) => (
                             <li key={`${artist.name}-${i}`} className="flex flex-row-reverse items-center gap-3 text-right group h-9">
-                                <span className="text-sm font-bold text-red-500 min-w-[12px]">{i + 1}</span>
+                                <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
 
                                 <div className="flex flex-col items-end min-w-0 justify-center">
-                                <span className="font-bold text-[11px] leading-tight w-full group-hover:text-red-400 transition-colors">
-                                    {artist.name}
-                                </span>
+                                    <span className="font-bold text-[11px] leading-tight w-full group-hover:text-red-400 transition-colors">
+                                        {artist.name}
+                                    </span>
                                     <span className="text-[10px] text-neutral-400 bg-white/5 px-1.5 rounded-sm mt-0.5 leading-tight inline-block">
-                                    {artist.playcount} plays
-                                </span>
+                                        {artist.playcount} plays
+                                    </span>
                                 </div>
                             </li>
                         ))}
@@ -110,7 +126,7 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                 </div>
             </div>
 
-            {/* --- FOOTER --- */}
+            {/* Footer */}
             <div className="z-10 pt-4 border-t border-white/10 mt-auto">
                 <div className="flex justify-between items-end">
                     <div>
