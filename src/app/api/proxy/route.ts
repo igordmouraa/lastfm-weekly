@@ -1,25 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
+export const runtime = 'edge'; // Opcional: deixa mais rápido na Vercel
+
+export async function GET(request: NextRequest) {
+    const url = request.nextUrl.searchParams.get('url');
 
     if (!url) {
-        return new NextResponse('URL is required', { status: 400 });
+        return new NextResponse('Missing URL', { status: 400 });
     }
 
     try {
         const response = await fetch(url);
 
-        if (!response.ok) {
-            return new NextResponse('Failed to fetch image', { status: response.status });
-        }
+        if (!response.ok) throw new Error('Failed to fetch image');
 
         const contentType = response.headers.get('content-type') || 'image/jpeg';
         const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
 
-        return new NextResponse(buffer, {
+        return new NextResponse(arrayBuffer, {
             headers: {
                 'Content-Type': contentType,
                 'Cache-Control': 'public, max-age=31536000, immutable',
@@ -27,7 +25,13 @@ export async function GET(request: Request) {
             },
         });
     } catch (error) {
-        console.error('Proxy error:', error);
-        return new NextResponse('Internal Server Error', { status: 500 });
+        console.error('Proxy Error:', error);
+        return new NextResponse(
+            Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
+            {
+                status: 200,
+                headers: { 'Content-Type': 'image/gif' }
+            }
+        );
     }
 }
