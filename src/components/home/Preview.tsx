@@ -66,7 +66,7 @@ export const Preview = ({ data, isDownloading, onDownload, cardRef }: PreviewPro
                                 ) : (
                                     <>
                                         <Download className="w-5 h-5" />
-                                        Baixar Stories
+                                        Baixar
                                     </>
                                 )}
                             </Button>
