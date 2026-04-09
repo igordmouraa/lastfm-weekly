@@ -52,7 +52,7 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                 </div>
 
                 <h1 className="text-4xl font-black leading-[0.9] tracking-tighter mb-2">
-                    Minha Cápsula<br/>Semanal
+                    Cápsula Musical<br/>Semanal
                 </h1>
                 <p className="text-sm text-neutral-400 font-medium">@{user.name}</p>
             </div>
