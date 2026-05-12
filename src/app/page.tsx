@@ -11,6 +11,7 @@ import { Footer } from "@/components/ui/footer";
 import { NoiseBackground, GradientBlobs, Marquee } from "@/components/ui/background-elements";
 import { Hero } from "@/components/home/Hero";
 import { Preview } from "@/components/home/Preview";
+import { WeeklyReport } from "@/components/wrapped/WeeklyReport";
 import { ErrorToast } from "@/components/ui/error-toast";
 
 const GENRES = ["ROCK", "INDIE", "POP", "JAZZ", "MPB", "HIP HOP", "SOUL", "METAL"];
@@ -118,6 +119,19 @@ export default function Home() {
                     cardRef={cardRef}
                 />
             </div>
+
+            {/* Weekly Report Section */}
+            {data && (
+                <div className="container mx-auto px-6 pb-12 relative z-10 w-full">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <WeeklyReport data={data} />
+                    </motion.div>
+                </div>
+            )}
 
             <Footer />
             <ErrorToast message={error} onClose={() => setError(null)} />

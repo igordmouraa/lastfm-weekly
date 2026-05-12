@@ -3,7 +3,7 @@ import {
     LastFmUserInfoResponse,
     LastFmImage
 } from "@/types/lastfm";
-import { startOfWeek, endOfWeek, getUnixTime } from 'date-fns';
+import { startOfWeek, endOfWeek, getUnixTime, format } from 'date-fns';
 
 const API_KEY = process.env.NEXT_PUBLIC_LASTFM_API_KEY;
 const API_BASE = 'https://ws.audioscrobbler.com/2.0/';
@@ -81,6 +81,8 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
 
     const tracksMap = new Map<string, { name: string, artist: string, image: LastFmImage[], count: number }>();
     const artistsMap = new Map<string, { name: string, count: number }>();
+    const albumsMap = new Map<string, { name: string, artist: string, image: LastFmImage[], count: number }>();
+    const dailyMap = new Map<string, number>();
 
     const rawTracks = recentTracksData.recenttracks.track;
     const trackList = Array.isArray(rawTracks) ? rawTracks : (rawTracks ? [rawTracks] : []);
@@ -119,6 +121,32 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
             }
             const artistEntry = artistsMap.get(artistName)!;
             artistEntry.count += 1;
+
+            const albumName = track.album?.['#text'];
+            if (albumName) {
+                const albumKey = `${albumName}-${artistName}`;
+                if (!albumsMap.has(albumKey)) {
+                    albumsMap.set(albumKey, {
+                        name: albumName,
+                        artist: artistName,
+                        image: track.image,
+                        count: 0
+                    });
+                }
+                const albumEntry = albumsMap.get(albumKey)!;
+                albumEntry.count += 1;
+                
+                const storedAlbumHasImage = hasValidImageURL(albumEntry.image);
+                if (!storedAlbumHasImage && currentTrackHasImage) {
+                    albumEntry.image = track.image;
+                }
+            }
+
+            if (track.date?.uts) {
+                const dateObj = new Date(parseInt(track.date.uts, 10) * 1000);
+                const dateStr = format(dateObj, 'yyyy-MM-dd');
+                dailyMap.set(dateStr, (dailyMap.get(dateStr) || 0) + 1);
+            }
         });
     }
 
@@ -129,6 +157,18 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
     const sortedArtists = Array.from(artistsMap.values())
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
+        
+    const sortedAlbums = Array.from(albumsMap.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+    const dailyStats = Array.from(dailyMap.entries())
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+        
+    const busiestDay = dailyStats.length > 0 
+        ? dailyStats.reduce((max, current) => current.count > max.count ? current : max, dailyStats[0])
+        : null;
 
     return {
         user: {
@@ -148,6 +188,17 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
             playcount: a.count.toString(),
             image: []
         })),
-        totalScrobbles: weeklyScrobbles
+        albums: sortedAlbums.map(a => ({
+            name: a.name,
+            artist: a.artist,
+            image: a.image,
+            playcount: a.count.toString()
+        })),
+        dailyStats,
+        busiestDay,
+        totalScrobbles: weeklyScrobbles,
+        uniqueArtistCount: artistsMap.size,
+        uniqueAlbumCount: albumsMap.size,
+        uniqueTrackCount: tracksMap.size
     };
 }

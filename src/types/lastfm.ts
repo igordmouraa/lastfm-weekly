@@ -13,6 +13,18 @@ export interface LastFmArtist {
     image?: LastFmImage[]; // Opcional, pois nem sempre temos a imagem do artista no recentTracks
 }
 
+export interface LastFmAlbum {
+    name: string;
+    artist: string;
+    playcount: string;
+    image: LastFmImage[];
+}
+
+export interface DailyStats {
+    date: string;
+    count: number;
+}
+
 export interface LastFmTrack {
     name: string;
     playcount?: string;
@@ -66,5 +78,11 @@ export interface WeeklyData {
     user: LastFmUser;
     artists: LastFmArtist[];
     tracks: LastFmTrack[];
+    albums: LastFmAlbum[];
+    dailyStats: DailyStats[];
+    busiestDay: { date: string; count: number } | null;
     totalScrobbles: number;
+    uniqueArtistCount: number;
+    uniqueAlbumCount: number;
+    uniqueTrackCount: number;
 }
