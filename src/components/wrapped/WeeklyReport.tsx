@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { WeeklyData } from "@/types/lastfm";
 import { ProxyImage } from '@/components/ProxyImage';
 import { LastFmImage } from "@/types/lastfm";
@@ -50,10 +50,38 @@ const MiniSparkBars = ({ values, color }: { values: number[]; color: string }) =
     );
 };
 
+/* ───────── Hook: busca imagem do artista via Deezer ───────── */
+const useArtistImage = (artistName: string | undefined) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!artistName) return;
+
+        const fetchImage = async () => {
+            try {
+                const res = await fetch(`/api/artist-image?name=${encodeURIComponent(artistName)}`);
+                const data = await res.json();
+                if (data.imageUrl) {
+                    setImageUrl(data.imageUrl);
+                }
+            } catch (err) {
+                console.error('Erro ao buscar imagem do artista:', err);
+            }
+        };
+
+        fetchImage();
+    }, [artistName]);
+
+    return imageUrl;
+};
+
 /* ───────── Componente Principal ───────── */
 export const WeeklyReport = ({ data }: WeeklyReportProps) => {
     const { artists, albums, tracks, dailyStats, totalScrobbles,
         uniqueArtistCount, uniqueAlbumCount, uniqueTrackCount } = data;
+
+    // Busca imagem real do artista principal via Deezer
+    const topArtistDeezerImage = useArtistImage(artists[0]?.name);
 
     /* ── Helpers ── */
     const getDayOfWeek = (dateStr: string) => {
@@ -227,6 +255,7 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
                         count={artistCount}
                         changePercent={artistChangePercent}
                         dailyValues={dailyValues}
+                        externalImageUrl={topArtistDeezerImage}
                         topItem={topArtist ? {
                             name: topArtist.name,
                             subtitle: '',
@@ -456,6 +485,8 @@ interface CategoryColumnProps {
     count: number;
     changePercent: number;
     dailyValues: number[];
+    /** URL externa (ex: Deezer) da imagem do item principal. Tem prioridade sobre image do Last.fm. */
+    externalImageUrl?: string | null;
     topItem: {
         name: string;
         subtitle: string;
@@ -478,6 +509,7 @@ const CategoryColumn = ({
     count,
     changePercent,
     dailyValues,
+    externalImageUrl,
     topItem,
     list,
     newPercent,
@@ -485,7 +517,9 @@ const CategoryColumn = ({
     newTopItem,
     newLabel,
 }: CategoryColumnProps) => {
-    const topImageUrl = topItem?.image ? getImageUrl(topItem.image) : null;
+    // Prioridade: imagem externa (Deezer) > imagem do álbum (Last.fm fallback)
+    const lastfmImageUrl = topItem?.image ? getImageUrl(topItem.image) : null;
+    const topImageUrl = externalImageUrl || lastfmImageUrl;
     const newItemImageUrl = newTopItem?.image ? getImageUrl(newTopItem.image) : null;
 
     return (

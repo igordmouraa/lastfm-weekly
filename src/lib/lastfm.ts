@@ -80,7 +80,7 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
     ]);
 
     const tracksMap = new Map<string, { name: string, artist: string, image: LastFmImage[], count: number }>();
-    const artistsMap = new Map<string, { name: string, count: number }>();
+    const artistsMap = new Map<string, { name: string, count: number, image: LastFmImage[] }>();
     const albumsMap = new Map<string, { name: string, artist: string, image: LastFmImage[], count: number }>();
     const dailyMap = new Map<string, number>();
 
@@ -117,10 +117,15 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
             }
 
             if (!artistsMap.has(artistName)) {
-                artistsMap.set(artistName, { name: artistName, count: 0 });
+                artistsMap.set(artistName, { name: artistName, count: 0, image: [] });
             }
             const artistEntry = artistsMap.get(artistName)!;
             artistEntry.count += 1;
+
+            // Guardar a imagem do álbum/track como fallback para o artista
+            if (!hasValidImageURL(artistEntry.image) && currentTrackHasImage) {
+                artistEntry.image = track.image;
+            }
 
             const albumName = track.album?.['#text'];
             if (albumName) {
@@ -186,7 +191,7 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
         artists: sortedArtists.map(a => ({
             name: a.name,
             playcount: a.count.toString(),
-            image: []
+            image: a.image
         })),
         albums: sortedAlbums.map(a => ({
             name: a.name,
