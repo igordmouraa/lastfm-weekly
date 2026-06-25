@@ -1,26 +1,15 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { ProxyImage } from '@/components/ProxyImage';
-import { WeeklyData, LastFmImage, LastFmTrack, LastFmArtist } from "@/types/lastfm";
+import { CoverImage } from '@/components/CoverImage';
+import { WeeklyData, LastFmTrack, LastFmArtist } from '@/types/lastfm';
+import { getImageUrl, truncateText } from '@/lib/images';
+import { cn } from '@/lib/utils';
 
 interface WeeklyStoriesProps {
     data: WeeklyData;
+    variant?: 'full' | 'preview';
 }
-
-const getImageUrl = (images: LastFmImage[]) => {
-    if (!images || !Array.isArray(images)) return null;
-    const mega = images.find((img) => img.size === 'mega')?.['#text'];
-    const extralarge = images.find((img) => img.size === 'extralarge')?.['#text'];
-    const large = images.find((img) => img.size === 'large')?.['#text'];
-    return mega || extralarge || large || null;
-};
-
-const truncateText = (text: string, maxLength: number) => {
-    if (!text) return '';
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '...';
-};
 
 const LastFmLogo = () => (
     <svg viewBox="0 0 512 512" fill="currentColor" className="w-8 h-8 text-red-500" xmlns="http://www.w3.org/2000/svg">
@@ -28,115 +17,99 @@ const LastFmLogo = () => (
     </svg>
 );
 
-export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ data }, ref) => {
+export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ data, variant = 'full' }, ref) => {
     const { user, artists, tracks, totalScrobbles } = data;
-
-    const fontStyle = { fontFamily: 'var(--font-geist-sans), sans-serif' };
+    const isPreview = variant === 'preview';
 
     return (
         <div
             ref={ref}
-            style={fontStyle}
-            className="w-90 h-160 bg-neutral-950 p-6 text-white flex flex-col shadow-2xl relative overflow-hidden select-none"
+            style={{ fontFamily: 'var(--font-body-family), sans-serif' }}
+            className={cn(
+                'bg-neutral-950 p-6 text-white flex flex-col shadow-2xl relative overflow-hidden select-none shrink-0',
+                isPreview ? 'w-[280px] h-[498px] text-[0.9em]' : 'w-[360px] h-[640px]'
+            )}
         >
-            {/* Background Gradient */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-red-900/20 via-neutral-950 to-neutral-950 pointer-events-none" />
 
-            {/* Header */}
             <div className="z-10 mt-2 mb-4">
                 <div className="flex justify-between items-start mb-2">
-                    <h2 className="text-xs font-bold text-red-500 tracking-widest uppercase mt-1">
-                        Últimos 7 dias
-                    </h2>
+                    <h2 className="text-xs font-bold text-red-500 tracking-widest uppercase mt-1">Últimos 7 dias</h2>
                     <LastFmLogo />
                 </div>
-
                 <h1 className="text-4xl font-black leading-[0.9] tracking-tighter mb-2">
-                    Cápsula Musical<br/>Semanal
+                    Cápsula Musical<br />Semanal
                 </h1>
                 <p className="text-sm text-neutral-400 font-medium">@{user.name}</p>
             </div>
 
-            {/* Conteúdo Grid */}
-            <div className="grid grid-cols-2 gap-x-6 z-10 grow h-full py-2">
-
-                {/* Esquerda: Músicas */}
-                <div className="flex flex-col h-full min-w-0">
-                    <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-4">
+            <div className="grid grid-cols-2 gap-x-3 z-10 flex-1 min-h-0 py-2">
+                <div className="flex flex-col min-h-0 min-w-0">
+                    <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
                         Top Músicas
                     </h3>
-                    <ul className="flex flex-col justify-between h-full max-h-80">
-                        {tracks.slice(0, 5).map((track: LastFmTrack, i: number) => {
-                            const trackImg = getImageUrl(track.image);
+                    <ul className="flex flex-col justify-between flex-1 min-h-0 gap-1">
+                        {tracks.slice(0, 5).map((track, i) => {
+                            const imageUrl = (track as LastFmTrack & { imageUrl?: string | null }).imageUrl;
                             return (
-                                <li key={`${track.name}-${i}`} className="flex items-center gap-3 group">
-                                    <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
-
-                                    <div className="relative w-9 h-9 rounded overflow-hidden bg-white/10 shrink-0 shadow-lg border border-white/10">
-                                        {trackImg ? (
-                                            <ProxyImage
-                                                src={trackImg}
-                                                alt={track.name}
-                                                className="object-cover w-full h-full"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-neutral-800" />
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-col min-w-0 justify-center flex-1">
-                                        <span className="font-bold text-[11px] leading-tight w-full truncate" title={track.name}>
-                                            {truncateText(track.name, 25)}
-                                        </span>
-                                        <span className="text-[10px] text-neutral-400 truncate w-full leading-tight mt-0.5">
-                                            {truncateText(track.artist.name, 20)}
-                                        </span>
-                                    </div>
-                                </li>
+                            <li key={`${track.name}-${i}`} className="flex items-center gap-3 group">
+                                <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
+                                <CoverImage
+                                    src={imageUrl ?? getImageUrl(track.image)}
+                                    alt={track.name}
+                                    className="w-9 h-9 rounded shrink-0"
+                                    forceProxy={!isPreview}
+                                />
+                                <div className="flex flex-col min-w-0 justify-center flex-1">
+                                    <span className="font-bold text-[11px] leading-tight truncate">{truncateText(track.name, 25)}</span>
+                                    <span className="text-[10px] text-neutral-400 truncate">{truncateText(track.artist?.name ?? '', 20)}</span>
+                                </div>
+                            </li>
                             );
                         })}
                     </ul>
                 </div>
 
-                {/* Direita: Artistas*/}
-                <div className="flex flex-col h-full min-w-0">
-                    <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-4 text-right">
+                <div className="flex flex-col min-h-0 min-w-0">
+                    <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
                         Top Artistas
                     </h3>
-                    <ul className="flex flex-col justify-between h-full max-h-80">
-                        {artists.slice(0, 5).map((artist: LastFmArtist, i: number) => (
-                            <li key={`${artist.name}-${i}`} className="flex flex-row-reverse items-center gap-3 text-right group h-9">
-                                <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
-
-                                <div className="flex flex-col items-end min-w-0 justify-center flex-1">
-                                    <span className="font-bold text-[11px] leading-tight w-full truncate" title={artist.name}>
-                                        {truncateText(artist.name, 25)}
-                                    </span>
-                                    <span className="text-[10px] text-neutral-400 bg-white/5 px-1.5 rounded-sm mt-0.5 leading-tight inline-block">
-                                        {artist.playcount} plays
-                                    </span>
+                    <ul className="flex flex-col justify-between flex-1 min-h-0 gap-1">
+                        {artists.slice(0, 5).map((artist: LastFmArtist, i: number) => {
+                            const imageUrl = (artist as LastFmArtist & { imageUrl?: string | null }).imageUrl;
+                            return (
+                            <li key={`${artist.name}-${i}`} className="flex items-center gap-2 min-h-9 min-w-0">
+                                <span className="text-sm font-bold text-red-500 w-3 shrink-0">{i + 1}</span>
+                                {!isPreview && (
+                                    <CoverImage
+                                        src={imageUrl ?? getImageUrl(artist.image)}
+                                        alt={artist.name}
+                                        className="w-8 h-8 rounded-full shrink-0 ring-1 ring-white/10"
+                                        forceProxy
+                                    />
+                                )}
+                                <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                                    <span className="font-bold text-[11px] leading-tight truncate">{truncateText(artist.name, 20)}</span>
+                                    <span className="text-[10px] text-neutral-400 truncate">{artist.playcount} plays</span>
                                 </div>
                             </li>
-                        ))}
+                            );
+                        })}
                     </ul>
                 </div>
             </div>
 
-            {/* Footer */}
             <div className="z-10 pt-4 border-t border-white/10 mt-auto">
                 <div className="flex justify-between items-start">
-                    <div className="flex flex-col justify-end">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Tempo total (Est.)</p>
+                    <div>
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Tempo (est.)</p>
                         <p className="text-3xl font-black text-white tracking-tighter leading-none">
                             {(totalScrobbles * 3.5).toFixed(0)} <span className="text-sm font-bold text-red-500">min</span>
                         </p>
                     </div>
-
-                    <div className="flex flex-col justify-end h-full text-right pb-0.5">
+                    <div className="text-right">
                         <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Scrobbles</p>
-                        <p className="text-xl font-bold text-white tracking-tight leading-none">
-                            {totalScrobbles.toLocaleString()}
-                        </p>
+                        <p className="text-xl font-bold text-white">{totalScrobbles.toLocaleString()}</p>
                     </div>
                 </div>
             </div>
@@ -144,4 +117,4 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
     );
 });
 
-WeeklyStories.displayName = "WeeklyStories";
+WeeklyStories.displayName = 'WeeklyStories';

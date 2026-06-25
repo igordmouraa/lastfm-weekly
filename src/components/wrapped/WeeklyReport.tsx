@@ -9,11 +9,12 @@ import {
     RadarChart, PolarGrid, PolarAngleAxis, Radar,
     AreaChart, Area, XAxis, YAxis, Tooltip,
     ResponsiveContainer,
-    RadialBarChart, RadialBar, Legend
+    RadialBarChart, RadialBar,
 } from 'recharts';
 
 interface WeeklyReportProps {
     data: WeeklyData;
+    username?: string;
 }
 
 const getImageUrl = (images: LastFmImage[]) => {
@@ -76,9 +77,10 @@ const useArtistImage = (artistName: string | undefined) => {
 };
 
 /* ───────── Componente Principal ───────── */
-export const WeeklyReport = ({ data }: WeeklyReportProps) => {
+export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
     const { artists, albums, tracks, dailyStats, totalScrobbles,
-        uniqueArtistCount, uniqueAlbumCount, uniqueTrackCount } = data;
+        uniqueArtistCount, uniqueAlbumCount, uniqueTrackCount,
+        prevWeekData, topTags, dailyTagData } = data;
 
     // Busca imagem real do artista principal via Deezer
     const topArtistDeezerImage = useArtistImage(artists[0]?.name);
@@ -92,8 +94,8 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
 
     const maxDaily = Math.max(...dailyStats.map(d => d.count), 1);
 
-    // Simulated previous week (mock) – ~85% of current
-    const prevWeekScrobbles = Math.round(totalScrobbles * 0.86);
+    // ── Dados reais da semana anterior ──
+    const prevWeekScrobbles = prevWeekData.totalScrobbles;
     const scrobbleChange = totalScrobbles - prevWeekScrobbles;
     const scrobbleChangePercent = prevWeekScrobbles > 0
         ? Math.round((scrobbleChange / prevWeekScrobbles) * 100)
@@ -103,66 +105,117 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
     const albumCount = uniqueAlbumCount;
     const trackCount = uniqueTrackCount;
 
-    // Mock previous counts for comparison
-    const prevArtistCount = Math.max(1, Math.round(artistCount * 0.82));
-    const prevAlbumCount = Math.max(1, Math.round(albumCount * 0.68));
-    const prevTrackCount = Math.max(1, Math.round(trackCount * 0.96));
+    // Contagens reais da semana anterior
+    const prevArtistCount = Math.max(1, prevWeekData.uniqueArtistCount);
+    const prevAlbumCount = Math.max(1, prevWeekData.uniqueAlbumCount);
+    const prevTrackCount = Math.max(1, prevWeekData.uniqueTrackCount);
 
-    const artistChangePercent = Math.round(((artistCount - prevArtistCount) / prevArtistCount) * 100);
-    const albumChangePercent = Math.round(((albumCount - prevAlbumCount) / prevAlbumCount) * 100);
-    const trackChangePercent = Math.round(((trackCount - prevTrackCount) / prevTrackCount) * 100);
+    const safePercent = (curr: number, prev: number) =>
+        prev > 0 ? Math.round(((curr - prev) / prev) * 100) : (curr > 0 ? 100 : 0);
+
+    const artistChangePercent = safePercent(artistCount, prevArtistCount);
+    const albumChangePercent = safePercent(albumCount, prevAlbumCount);
+    const trackChangePercent = safePercent(trackCount, prevTrackCount);
 
     const dailyValues = dailyStats.map(d => d.count);
-    // Mock previous week daily values (deterministic based on index)
-    const prevDailyValues = dailyValues.map((v, i) => Math.max(0, Math.round(v * (0.7 + ((i * 17 + 7) % 10) * 0.04))));
+    // Valores reais da semana anterior
+    const prevDailyValues = prevWeekData.dailyStats.map(d => d.count);
 
     // Top items
     const topArtist = artists[0];
     const topAlbum = albums[0];
     const topTrack = tracks[0];
 
-    // Mock "new" percentages
-    const newArtistsPercent = 25;
-    const newAlbumsPercent = 32;
-    const newTracksPercent = 31;
-    const newArtistsChange = 5;
-    const newAlbumsChange = 19;
-    const newTracksChange = 28;
+    // ── Cálculo real de itens novos ──
+    const currentArtistNames = artists.map(a => a.name);
+    const currentAlbumKeys = albums.map(a => `${a.name}-${a.artist}`);
+    const currentTrackKeys = tracks.map(t => `${t.name}-${t.artist.name}`);
 
-    /* ── Mock data for Charts section ── */
-    const radarData = [
-        { subject: 'Consistência', you: 78, global: 60 },
-        { subject: 'Descobrir taxa', you: 45, global: 55 },
-        { subject: 'Variação', you: 62, global: 50 },
-        { subject: 'Concentração', you: 85, global: 45 },
-        { subject: 'Taxa de repetições', you: 70, global: 40 },
-    ];
+    const prevArtistSet = new Set(prevWeekData.artistNames);
+    const prevAlbumSet = new Set(prevWeekData.albumKeys);
+    const prevTrackSet = new Set(prevWeekData.trackKeys);
+
+    const newArtists = currentArtistNames.filter(n => !prevArtistSet.has(n));
+    const newAlbums = currentAlbumKeys.filter(k => !prevAlbumSet.has(k));
+    const newTracks = currentTrackKeys.filter(k => !prevTrackSet.has(k));
+
+    const newArtistsPercent = artistCount > 0 ? Math.round((newArtists.length / artistCount) * 100) : 0;
+    const newAlbumsPercent = albumCount > 0 ? Math.round((newAlbums.length / albumCount) * 100) : 0;
+    const newTracksPercent = trackCount > 0 ? Math.round((newTracks.length / trackCount) * 100) : 0;
+
+    // Variação em relação à semana anterior (novos itens da semana passada)
+    const prevNewArtists = prevWeekData.artistNames.length > 0 ? prevWeekData.uniqueArtistCount : 0;
+    const prevNewAlbums = prevWeekData.albumKeys.length > 0 ? prevWeekData.uniqueAlbumCount : 0;
+    const prevNewTracks = prevWeekData.trackKeys.length > 0 ? prevWeekData.uniqueTrackCount : 0;
+
+    const newArtistsChange = safePercent(newArtists.length, Math.round(prevNewArtists * 0.3));
+    const newAlbumsChange = safePercent(newAlbums.length, Math.round(prevNewAlbums * 0.3));
+    const newTracksChange = safePercent(newTracks.length, Math.round(prevNewTracks * 0.3));
+
+    /* ── Dados REAIS para Charts section ── */
+
+    // Radar: calculado a partir dos dados reais
+    const computeRadar = () => {
+        // Consistência: regularidade diária (inverso do coef. de variação)
+        const mean = dailyValues.length > 0 ? dailyValues.reduce((a, b) => a + b, 0) / dailyValues.length : 0;
+        const stdDev = dailyValues.length > 0 ? Math.sqrt(dailyValues.reduce((sum, v) => sum + (v - mean) ** 2, 0) / dailyValues.length) : 0;
+        const cv = mean > 0 ? stdDev / mean : 1;
+        const consistency = Math.round(Math.max(0, Math.min(100, (1 - cv) * 100)));
+
+        // Descobrir taxa: % de artistas novos
+        const discoveryRate = Math.round(Math.min(100, newArtistsPercent * 1.2));
+
+        // Variação: artistas únicos vs total scrobbles
+        const variation = Math.round(Math.min(100, (artistCount / Math.max(1, totalScrobbles)) * 300));
+
+        // Concentração: % de scrobbles nos top 3
+        const top3Playcount = artists.slice(0, 3).reduce((sum, a) => sum + parseInt(a.playcount || '0'), 0);
+        const concentration = totalScrobbles > 0 ? Math.round((top3Playcount / totalScrobbles) * 100) : 0;
+
+        // Taxa de repetições: scrobbles por faixa única
+        const repetitionRate = trackCount > 0 ? Math.round(Math.min(100, (totalScrobbles / trackCount) * 25)) : 0;
+
+        return [
+            { subject: 'Consistência', you: consistency, global: 55 },
+            { subject: 'Descobrir taxa', you: discoveryRate, global: 50 },
+            { subject: 'Variação', you: variation, global: 45 },
+            { subject: 'Concentração', you: concentration, global: 40 },
+            { subject: 'Taxa de repetições', you: repetitionRate, global: 35 },
+        ];
+    };
+
+    const handleShare = async () => {
+        const url = username
+            ? `${window.location.origin}/${encodeURIComponent(username)}/week`
+            : window.location.href;
+        if (navigator.share) {
+            await navigator.share({ title: 'Meu Wrapped — Weekster Hub', url });
+        } else {
+            await navigator.clipboard.writeText(url);
+        }
+    };
+
+    const radarData = computeRadar();
 
     const radialData = [
-        { name: 'Faixas', value: parseInt(tracks[0]?.playcount || '0'), fill: '#38bdf8' },
+        { name: 'Faixas', value: trackCount, fill: '#38bdf8' },
         { name: 'Álbuns', value: albumCount, fill: '#a78bfa' },
         { name: 'Artistas', value: artistCount, fill: '#34d399' },
     ];
 
-    // Mock tag stream data
-    const tagStreamData = [
-        { week: '2 Abr', rock: 40, jazz: 25, pop: 15, classic_rock: 30, folk: 5, soft_rock: 20, '70s': 10 },
-        { week: '9 Abr', rock: 35, jazz: 30, pop: 20, classic_rock: 25, folk: 8, soft_rock: 25, '70s': 15 },
-        { week: '16 Abr', rock: 30, jazz: 20, pop: 25, classic_rock: 35, folk: 12, soft_rock: 18, '70s': 12 },
-        { week: '23 Abr', rock: 25, jazz: 15, pop: 18, classic_rock: 40, folk: 15, soft_rock: 10, '70s': 8 },
-        { week: '30 Abr', rock: 20, jazz: 10, pop: 12, classic_rock: 38, folk: 20, soft_rock: 8, '70s': 5 },
-        { week: '7 Mai', rock: 22, jazz: 12, pop: 10, classic_rock: 42, folk: 18, soft_rock: 12, '70s': 7 },
-    ];
+    // Tags reais dos top artistas
+    const tagStreamData = dailyTagData;
+    const tagNames = topTags.map(t => t.name);
 
-    const tagColors: Record<string, string> = {
-        rock: '#6366f1',
-        jazz: '#8b5cf6',
-        pop: '#ec4899',
-        classic_rock: '#14b8a6',
-        folk: '#10b981',
-        soft_rock: '#f472b6',
-        '70s': '#a855f7',
-    };
+    // Paleta de cores dinâmica para tags
+    const TAG_PALETTE = [
+        '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6',
+        '#10b981', '#f472b6', '#a855f7',
+    ];
+    const tagColors: Record<string, string> = {};
+    tagNames.forEach((name, i) => {
+        tagColors[name] = TAG_PALETTE[i % TAG_PALETTE.length];
+    });
 
     /* ── Category card accent colors ── */
     const categoryColors = {
@@ -237,7 +290,11 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
 
                 {/* Share button */}
                 <div className="flex justify-end mt-4">
-                    <button className="flex items-center gap-2 bg-neutral-950 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors">
+                    <button
+                        type="button"
+                        onClick={handleShare}
+                        className="flex items-center gap-2 bg-neutral-950 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors"
+                    >
                         <Share2 size={14} />
                         COMPARTILHAR RESUMO
                     </button>
@@ -284,13 +341,13 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
                         dailyValues={dailyValues}
                         topItem={topAlbum ? {
                             name: topAlbum.name,
-                            subtitle: topAlbum.artist,
-                            playcount: topAlbum.playcount,
+                            subtitle: typeof topAlbum.artist === 'string' ? topAlbum.artist : (topAlbum.artist as { name?: string })?.name ?? '',
+                            playcount: topAlbum.playcount ?? '0',
                             image: topAlbum.image,
                         } : null}
                         list={albums.slice(1, 5).map(a => ({
                             name: a.name,
-                            playcount: a.playcount,
+                            playcount: a.playcount ?? '0',
                         }))}
                         newPercent={newAlbumsPercent}
                         newChange={newAlbumsChange}
@@ -310,7 +367,7 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
                         dailyValues={dailyValues}
                         topItem={topTrack ? {
                             name: topTrack.name,
-                            subtitle: topTrack.artist.name,
+                            subtitle: topTrack.artist?.name ?? '',
                             playcount: topTrack.playcount || '0',
                             image: topTrack.image,
                         } : null}
@@ -433,7 +490,7 @@ export const WeeklyReport = ({ data }: WeeklyReportProps) => {
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={tagStreamData}>
                                 <XAxis
-                                    dataKey="week"
+                                    dataKey="date"
                                     tick={{ fill: '#888', fontSize: 11 }}
                                     axisLine={{ stroke: '#333' }}
                                     tickLine={false}
