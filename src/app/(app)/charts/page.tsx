@@ -3,7 +3,9 @@ import { ChartsView } from '@/components/discovery/ChartsView';
 import { PageContainer } from '@/components/shell/PageContainer';
 import { Metadata } from 'next';
 
-export const revalidate = 3600;
+// Avoid build-time prerender: LASTFM_API_KEY may be unavailable during CI/Vercel build.
+// Data is still cached for 1h via fetch revalidate in chart.ts.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
     title: 'Charts — Weekster Hub',
