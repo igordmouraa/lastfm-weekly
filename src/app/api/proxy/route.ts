@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedImageHost } from '@/lib/image-hosts';
 
-export const runtime = 'edge'; // Opcional: deixa mais rápido na Vercel
+export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
     const url = request.nextUrl.searchParams.get('url');
@@ -10,8 +11,12 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const response = await fetch(url);
+        const parsed = new URL(url);
+        if (!isAllowedImageHost(parsed.hostname)) {
+            return new NextResponse('Domain not allowed', { status: 403 });
+        }
 
+        const response = await fetch(url, { next: { revalidate: 86400 } });
         if (!response.ok) throw new Error('Failed to fetch image');
 
         const contentType = response.headers.get('content-type') || 'image/jpeg';
@@ -20,18 +25,11 @@ export async function GET(request: NextRequest) {
         return new NextResponse(arrayBuffer, {
             headers: {
                 'Content-Type': contentType,
-                'Cache-Control': 'public, max-age=31536000, immutable',
+                'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800, immutable',
                 'Access-Control-Allow-Origin': '*',
             },
         });
-    } catch (error) {
-        console.error('Proxy Error:', error);
-        return new NextResponse(
-            Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
-            {
-                status: 200,
-                headers: { 'Content-Type': 'image/gif' }
-            }
-        );
+    } catch {
+        return new NextResponse('Failed to fetch image', { status: 502 });
     }
 }
