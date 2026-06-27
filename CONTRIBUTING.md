@@ -49,7 +49,7 @@ npm install
 
 # 3. Variáveis de ambiente
 cp .env.example .env
-# Edite .env e preencha LASTFM_API_KEY
+# Edite .env: LASTFM_API_KEY e SESSION_SECRET (min 32 chars)
 
 # 4. Desenvolvimento
 npm run dev
@@ -97,13 +97,17 @@ refactor: extrai RankedList para discovery
 ### Arquitetura
 
 - **API key só no servidor** — `LASTFM_API_KEY` nunca em `NEXT_PUBLIC_*`.
+- **Sessão** — cookie JWT `hub_session` assinado com `SESSION_SECRET`; helpers em `src/lib/session/`.
+- **`currentUser` vs `viewedUser`** — sidebar, now playing e compare usam `currentUser` (sessão); páginas `[username]/*` usam o param da URL para dados. Nunca grave o perfil visitado como conta logada.
 - **BFF** — chamadas Last.fm via Server Components, aggregators ou Route Handlers em `src/app/api/`.
 - **Sem fetch direto** da API Last.fm no browser.
 - **Imagens** — use `CoverImage` + proxy `/api/proxy`; resolução via `enrichWithImages` no servidor.
 
 ### UI
 
-- Interface em **português (PT-BR)**.
+- Interface via **next-intl** — locales `pt-BR` e `en-US`; use `useTranslations` (client) ou `getTranslations` (server).
+- Links internos via `@/i18n/navigation` (`Link`, `useRouter`, `redirect`).
+- Novas strings em `messages/pt-BR.json` **e** `messages/en-US.json` (mesma estrutura de chaves).
 - Tema **dark** fixo, accent **vermelho** (`red-500` / `#ef4444`).
 - Tipografia: **Outfit** (display) + **DM Sans** (corpo).
 - Prefira layouts orgânicos; evite cards pesados sem necessidade.
@@ -124,7 +128,7 @@ Contribuições bem-vindas:
 - Melhorias de UI/UX e acessibilidade
 - Performance e cache
 - Documentação e testes
-- Traduções (se expandirmos i18n no futuro)
+- Traduções em `messages/pt-BR.json` e `messages/en-US.json` (novas strings de UI **sempre** via i18n, nunca hardcoded)
 
 Evite, sem discussão prévia:
 
