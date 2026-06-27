@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { CoverImage } from '@/components/CoverImage';
 import { LastFmImage } from '@/types/lastfm';
 import { getImageUrl, truncateText } from '@/lib/images';

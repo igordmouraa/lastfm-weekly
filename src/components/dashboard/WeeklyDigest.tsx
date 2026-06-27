@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { WeeklyData } from '@/types/lastfm';
 import { CoverImage } from '@/components/CoverImage';
 import { getImageUrl, truncateText } from '@/lib/images';
@@ -74,6 +75,8 @@ function resolveItemImage(item: { image?: unknown; imageUrl?: string | null }): 
 }
 
 export function WeeklyDigest({ data }: WeeklyDigestProps) {
+    const t = useTranslations('dashboard.digest');
+
     const artists = data.artists.slice(0, 5).map((a) => ({
         name: a.name,
         playcount: a.playcount,
@@ -97,13 +100,13 @@ export function WeeklyDigest({ data }: WeeklyDigestProps) {
     return (
         <section>
             <header className="mb-6">
-                <h2 className="text-lg font-display font-bold tracking-tight">Digest semanal</h2>
-                <p className="text-sm text-neutral-500 mt-0.5">Seus tops dos últimos 7 dias</p>
+                <h2 className="text-lg font-display font-bold tracking-tight">{t('title')}</h2>
+                <p className="text-sm text-neutral-500 mt-0.5">{t('subtitle')}</p>
             </header>
             <div className="grid sm:grid-cols-3 gap-x-8 gap-y-6">
-                <DigestColumn title="Artistas" accent="#a78bfa" items={artists} linkPrefix="/artist" />
-                <DigestColumn title="Álbuns" accent="#34d399" items={albums} />
-                <DigestColumn title="Faixas" accent="#38bdf8" items={tracks} />
+                <DigestColumn title={t('artists')} accent="#a78bfa" items={artists} linkPrefix="/artist" />
+                <DigestColumn title={t('albums')} accent="#34d399" items={albums} />
+                <DigestColumn title={t('tracks')} accent="#38bdf8" items={tracks} />
             </div>
         </section>
     );

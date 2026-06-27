@@ -46,7 +46,7 @@ Se você representa a Last.fm e tiver alguma preocupação, abra uma issue ou en
 
 **Weekster Hub** transforma seu perfil Last.fm em uma experiência visual completa: dashboard dos últimos 7 dias, collage de álbuns exportável, cápsula semanal estilo stories, wrapped por período, comparação de taste entre usuários e discovery global por charts e tags.
 
-Interface em português, tema escuro com accent vermelho, tipografia **Outfit** + **DM Sans**.
+Interface em **português (Brasil)** e **inglês (EUA)**, com detecção automática do idioma do navegador. Tema escuro com accent vermelho, tipografia **Outfit** + **DM Sans**.
 
 ---
 
@@ -110,15 +110,23 @@ Edite `.env`:
 
 ```env
 LASTFM_API_KEY=sua_chave_aqui
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+SESSION_SECRET=string_aleatoria_com_pelo_menos_32_caracteres
 ```
 
-> **Nunca** commite `.env` nem use `NEXT_PUBLIC_` para a chave da API.
+> **Nunca** commite `.env` nem use `NEXT_PUBLIC_` para a chave da API ou o `SESSION_SECRET`.
+
+Gere um secret seguro com:
+
+```bash
+openssl rand -base64 32
+```
 
 ```bash
 npm run dev
 ```
 
-Acesse **http://localhost:3000**, digite um username Last.fm e explore.
+Acesse **http://localhost:3000** — você será redirecionado para `/pt-BR` ou `/en-US` conforme o idioma do navegador. Digite um username Last.fm e explore.
 
 ### Scripts
 
@@ -131,21 +139,55 @@ Acesse **http://localhost:3000**, digite um username Last.fm e explore.
 
 ---
 
+## 🌐 Internacionalização
+
+- **Locales:** `pt-BR` (padrão) e `en-US`
+- **URLs:** prefixo obrigatório — `/pt-BR/charts`, `/en-US/{username}/week`
+- **Detecção:** middleware lê `Accept-Language` na primeira visita e persiste em cookie (`NEXT_LOCALE`)
+- **Troca manual:** seletor PT / EN na top bar
+- **Arquivos de tradução:** [`messages/pt-BR.json`](messages/pt-BR.json), [`messages/en-US.json`](messages/en-US.json)
+
+Rotas antigas sem prefixo (ex.: `/charts`) redirecionam automaticamente para o locale detectado.
+
+---
+
+## 🔐 Sessão do usuário
+
+O Weekster Hub distingue **minha conta** (`currentUser`) do **perfil que estou vendo** (`viewedUser`):
+
+| Conceito | Origem | Uso |
+| -------- | ------ | --- |
+| `currentUser` | Cookie JWT `hub_session` (httpOnly) | Sidebar, now playing, compare (user1), links do dashboard |
+| `viewedUser` | Segmento `[username]` na URL | Dados exibidos na página (dashboard, week, semaninha…) |
+
+- **Login:** na landing, a busca chama `POST /api/session`, valida o username via Last.fm e grava o cookie por até 1 ano.
+- **Ver outro perfil:** a busca compacta na top bar apenas navega — **não** troca a sessão.
+- **Banner:** ao visitar perfil alheio estando logado, aparece aviso com link para voltar ao seu dashboard.
+- **Logout:** botão na sidebar remove o cookie via `DELETE /api/session`.
+
+> **Limitação:** nesta fase não há OAuth Last.fm — qualquer pessoa pode declarar ser `@username` sem provar posse da conta. OAuth fica para uma fase futura.
+
+Configure `SESSION_SECRET` (mín. 32 caracteres) em `.env` local e nas variáveis da Vercel.
+
+---
+
 ## 🗺 Rotas
 
 | Rota | Descrição |
 | ---- | --------- |
-| `/` | Landing + busca de usuário |
-| `/{username}` | Dashboard (últimos 7 dias) |
-| `/{username}/semaninha` | Gerador de grade de álbuns |
-| `/{username}/week` | Cápsula semanal (export) |
-| `/{username}/wrapped` | Wrapped por período |
-| `/{username}/friends` | Amigos |
-| `/compare` | Comparar taste entre dois usuários |
-| `/charts` | Charts globais Last.fm |
-| `/tags` | Explorar tags |
-| `/artist/{nome}` | Página de artista |
-| `/tag/{nome}` | Artistas e álbuns por tag |
+| `/{locale}` | Landing + busca de usuário |
+| `/{locale}/{username}` | Dashboard (últimos 7 dias) |
+| `/{locale}/{username}/semaninha` | Gerador de grade de álbuns |
+| `/{locale}/{username}/week` | Cápsula semanal (export) |
+| `/{locale}/{username}/wrapped` | Wrapped por período |
+| `/{locale}/{username}/friends` | Amigos |
+| `/{locale}/compare` | Comparar taste entre dois usuários |
+| `/{locale}/charts` | Charts globais Last.fm |
+| `/{locale}/tags` | Explorar tags |
+| `/{locale}/artist/{nome}` | Página de artista |
+| `/{locale}/tag/{nome}` | Artistas e álbuns por tag |
+
+`{locale}` = `pt-BR` ou `en-US`
 
 ---
 
@@ -154,20 +196,25 @@ Acesse **http://localhost:3000**, digite um username Last.fm e explore.
 ```
 src/
 ├── app/
-│   ├── (marketing)/     # Landing
-│   ├── (app)/           # App autenticado por username na URL
+│   ├── [locale]/        # Rotas com prefixo pt-BR / en-US
+│   │   ├── (marketing)/ # Landing
+│   │   └── (app)/       # App por username na URL
 │   └── api/             # BFF (proxy, now-playing, …)
+├── i18n/                # routing, navigation, request config
+├── messages/            # pt-BR.json, en-US.json
 ├── components/
 │   ├── dashboard/       # Dashboard hub
 │   ├── discovery/       # Charts, tags, artistas
-│   ├── shell/           # Sidebar, topbar, layout
+│   ├── shell/           # Sidebar, topbar, locale switcher
 │   ├── social/          # Amigos, comparar
 │   └── wrapped/         # Cápsula, wrapped período
-├── lib/lastfm/
-│   ├── aggregators/     # Camada de dados
-│   ├── client.ts        # Cliente API Last.fm
-│   └── resolve-image.ts # Pipeline de capas
-└── types/lastfm.ts      # Tipos da API
+├── lib/
+│   ├── i18n/            # format.ts (date-fns / Intl)
+│   └── lastfm/
+│       ├── aggregators/ # Camada de dados
+│       ├── client.ts    # Cliente API Last.fm
+│       └── resolve-image.ts
+└── types/lastfm.ts
 ```
 
 ---

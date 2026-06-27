@@ -1,0 +1,560 @@
+{
+  "common": {
+    "brand": "Weekster Hub",
+    "actions": {
+      "export": "Export",
+      "close": "Close",
+      "search": "Search",
+      "download": "Download",
+      "explore": "Explore",
+      "compare": "Compare",
+      "generate": "Generate",
+      "copyLink": "Copy link",
+      "share": "Share",
+      "openEditor": "Open editor",
+      "viewFullSize": "View full size",
+      "viewOnLastfm": "View on Last.fm",
+      "viewOnLastfmArrow": "View on Last.fm →",
+      "backToHome": "← Back to home",
+      "backToDashboard": "Back to dashboard"
+    },
+    "vs": "VS",
+    "vsLower": "vs",
+    "emDash": "—",
+    "unknownInitial": "?",
+    "plays": "{count} plays",
+    "scrobbles": "scrobbles",
+    "scrobblesCount": "{count, number} scrobbles",
+    "scrobblesInPeriod": "scrobbles in period",
+    "minutesShort": "min",
+    "minutesEstimated": "Min (est.)",
+    "timeEstimated": "Time (est.)",
+    "top10": "top 10",
+    "rankArtist": "#1 Artist",
+    "rankTrack": "#1 Track",
+    "artistNumberOne": "Artist #1",
+    "artistFallback": "Artist",
+    "categories": {
+      "artists": "Artists",
+      "albums": "Albums",
+      "tracks": "Tracks",
+      "songs": "Songs"
+    },
+    "discovery": "Discovery",
+    "social": "Social",
+    "tag": "Tag",
+    "artist": "Artist",
+    "live": "Live",
+    "nowPlaying": "Now playing",
+    "lastTrack": "Last track",
+    "noRecentScrobble": "No recent scrobbles",
+    "lastSevenDays": "Last 7 days",
+    "overlap": "overlap in top 50 artists",
+    "inCommon": "In common",
+    "onlyUser": "Only {username}",
+    "countrySeparator": " · {country}",
+    "dataVia": "Data via",
+    "lastfmApi": "Last.fm API",
+    "copyright": "© {year}",
+    "poweredBy": "Powered by Last.fm"
+  },
+  "nav": {
+    "brand": "Weekster Hub",
+    "groups": {
+      "home": "Home",
+      "summaries": "Summaries",
+      "social": "Social",
+      "explore": "Explore"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "weeklyGrid": "Weekster",
+      "capsule": "Capsule",
+      "wrapped": "Wrapped",
+      "friends": "Friends",
+      "compare": "Compare",
+      "globalCharts": "Global charts",
+      "tags": "Tags"
+    },
+    "breadcrumbs": {
+      "home": "Home",
+      "discovery": "Discovery"
+    },
+    "routes": {
+      "semaninha": "Weekster",
+      "week": "Capsule",
+      "wrapped": "Wrapped",
+      "month": "Wrapped",
+      "year": "Wrapped",
+      "friends": "Friends",
+      "charts": "Global charts",
+      "compare": "Compare",
+      "tags": "Tags",
+      "gallery": "Tags",
+      "artist": "Artist",
+      "tag": "Tag"
+    },
+    "aria": {
+      "closeMenu": "Close menu",
+      "openMenu": "Open menu",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "collapse": "Collapse"
+    },
+    "searchPlaceholder": "Another user...",
+    "localeSwitcher": {
+      "label": "Language",
+      "pt": "PT",
+      "en": "EN",
+      "switchToPt": "Switch to Portuguese (Brazil)",
+      "switchToEn": "Switch to English (US)",
+      "current": "Current language: {locale}"
+    }
+  },
+  "metadata": {
+    "siteName": "Weekster Hub",
+    "defaultTitle": "Weekster Hub — Your sound, visualized",
+    "titleTemplate": "{page} | Weekster Hub",
+    "titleSuffix": "| Weekster Hub",
+    "description": "Enter your username and access your Last.fm dashboard, grids, capsules, and Wrapped — all in one place.",
+    "ogImageAlt": "Weekster Hub — Last.fm dashboard, Weekster, capsule, and Wrapped",
+    "keywords": {
+      "lastfm": "Last.fm",
+      "scrobbles": "scrobbles",
+      "dashboard": "music dashboard",
+      "wrapped": "wrapped",
+      "weeklyGrid": "Weekster",
+      "capsule": "capsule",
+      "brand": "Weekster Hub",
+      "charts": "charts",
+      "tags": "tags"
+    },
+    "author": "Igor Moura",
+    "pages": {
+      "dashboard": {
+        "title": "{username} — Dashboard",
+        "description": "Music dashboard for {username}."
+      },
+      "semaninha": {
+        "title": "Weekster — {username}",
+        "heading": "Weekster",
+        "description": "Exportable album grid."
+      },
+      "week": {
+        "title": "Weekly Capsule — {username}",
+        "heading": "Music Capsule",
+        "description": "Your last 7 days in story format."
+      },
+      "wrapped": {
+        "title": "Wrapped · {period} — {username}"
+      },
+      "friends": {
+        "title": "Friends — {username}"
+      },
+      "compare": {
+        "title": "Compare — Weekster Hub",
+        "description": "Compare taste overlap between two Last.fm users."
+      },
+      "charts": {
+        "title": "Charts — Weekster Hub",
+        "description": "Global Last.fm charts."
+      },
+      "tags": {
+        "title": "Tags — Weekster Hub",
+        "description": "Explore genres and tags on Last.fm."
+      },
+      "tag": {
+        "title": "{tagName} — Tag"
+      },
+      "artist": {
+        "title": "{artistName} — Artist"
+      }
+    }
+  },
+  "marketing": {
+    "nav": {
+      "charts": "Charts",
+      "tags": "Tags"
+    },
+    "hero": {
+      "badge": "Powered by Last.fm",
+      "titleLine1": "Your sound,",
+      "titleLine2": "visualized.",
+      "subtitle": "Enter your username and access your dashboard, grids, capsules, and Wrapped — all in one place."
+    },
+    "searchPlaceholder": "Your Last.fm username",
+    "pills": {
+      "noLogin": "No login",
+      "realtimeData": "Real-time data",
+      "exportPng": "Export PNG"
+    },
+    "preview": {
+      "capsule": "Capsule",
+      "weekInStories": "Your week in stories",
+      "scrobbles": "Scrobbles",
+      "demoScrobbles": "12.8k"
+    },
+    "features": {
+      "sectionTitle": "What you'll find",
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Last 7 days, tags, digest, and now playing."
+      },
+      "weeklyGrid": {
+        "title": "Weekster",
+        "description": "Exportable album collage as PNG."
+      },
+      "capsule": {
+        "title": "Capsule",
+        "description": "Weekly stories ready to share."
+      },
+      "wrapped": {
+        "title": "Wrapped",
+        "description": "Top 10 by period — 1 month to 12 months."
+      }
+    },
+    "explore": {
+      "globalCharts": "Explore global charts",
+      "byTags": "Explore by tags"
+    },
+    "marquee": {
+      "genres": ["ROCK", "INDIE", "POP", "JAZZ", "MPB", "HIP HOP", "SOUL", "METAL"],
+      "vibes": ["WEEKSTER", "WRAPPED", "CAPSULA", "GRADE", "SCROBBLE", "TAGS", "CHARTS"]
+    },
+    "legacy": {
+      "badge": "Last.fm Weekly",
+      "titleLine1": "Your week",
+      "titleLine2": "in music.",
+      "subtitle": "Turn your scrobbles into a visual capsule. Discover your top artists and tracks from the last 7 days.",
+      "placeholder": "Your Last.fm username",
+      "pills": {
+        "stories": "Stories 9:16",
+        "autoCovers": "Auto-covers",
+        "hdDownload": "HD Download"
+      },
+      "previewPlaceholder": "Enter your username\nto get started",
+      "generating": "Generating...",
+      "download": "Download"
+    }
+  },
+  "dashboard": {
+    "profile": "Profile",
+    "scrobblesSevenDays": "Scrobbles · 7 days",
+    "capsule": {
+      "title": "Capsule",
+      "subtitle": "Weekly stories",
+      "export": "Export",
+      "viewFullSize": "View full size"
+    },
+    "semaninha": {
+      "title": "Weekster",
+      "subtitle": "Top 9 · 7 days",
+      "openEditor": "Open editor"
+    },
+    "tags": {
+      "title": "Your sound",
+      "weekly": "Most played tags this week",
+      "profile": "Tags on your profile"
+    },
+    "digest": {
+      "title": "Weekly digest",
+      "subtitle": "Your tops from the last 7 days",
+      "artists": "Artists",
+      "albums": "Albums",
+      "tracks": "Tracks"
+    }
+  },
+  "semaninha": {
+    "title": "Weekster",
+    "description": "Exportable album grid.",
+    "loading": {
+      "page": "Loading Weekster",
+      "default": "Building your grid",
+      "grid10x30d": "10×10 grid from the last 30 days",
+      "grid10x10": "Building 10×10 grid",
+      "albums30d": "Fetching albums from the last 30 days",
+      "scanning15d": "Scanning the last 15 days",
+      "updating": "Updating your grid",
+      "subtitle": "Resolving covers and building the collage"
+    },
+    "controls": {
+      "grid": "Grid",
+      "period": "Period",
+      "appearance": "Appearance",
+      "labelsOnCovers": "Names on covers",
+      "labelContent": "Show on labels",
+      "spacing": "Spacing",
+      "corners": "Corners",
+      "outerBorder": "Outer border"
+    },
+    "gridGroups": {
+      "square": "Square",
+      "wide": "Landscape",
+      "tall": "Portrait"
+    },
+    "grid": {
+      "3x3": "3×3",
+      "4x4": "4×4",
+      "5x5": "5×5",
+      "6x6": "6×6",
+      "10x10": "10×10",
+      "3x2": "3×2",
+      "4x3": "4×3",
+      "5x3": "5×3",
+      "5x4": "5×4",
+      "6x4": "6×4",
+      "2x3": "2×3",
+      "3x4": "3×4",
+      "3x5": "3×5",
+      "4x5": "4×5"
+    },
+    "labels": {
+      "withNames": "With names",
+      "withoutNames": "Without names",
+      "artistAndAlbum": "Artist + album",
+      "artistOnly": "Artist only",
+      "albumOnly": "Album only"
+    },
+    "spacing": {
+      "none": "None",
+      "thin": "Thin",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "corners": {
+      "square": "Square",
+      "soft": "Soft",
+      "rounded": "Rounded",
+      "pill": "Pill"
+    },
+    "border": {
+      "with": "With border",
+      "without": "Without border"
+    }
+  },
+  "week": {
+    "stories": {
+      "period": "Last 7 days",
+      "capsuleTitleLine1": "Your week",
+      "capsuleTitleLine2": "in music",
+      "username": "@{username}",
+      "topTracks": "Top Tracks",
+      "topArtists": "Top Artists",
+      "timeEstimated": "Time (est.)",
+      "scrobbles": "Scrobbles"
+    },
+    "page": {
+      "badge": "Weekly stories",
+      "title": "Your week in one card",
+      "subtitle": "Top tracks, artists, and scrobbles from the last 7 days — ready to export and share.",
+      "stats": {
+        "scrobbles": "Scrobbles",
+        "minutes": "Min (est.)",
+        "artists": "Artists",
+        "albums": "Albums"
+      },
+      "topAlbums": "Top albums",
+      "weekActivity": "Week activity",
+      "dayScrobbles": "{count} scrobbles",
+      "soundOfWeek": "Sound of the week",
+      "aspectRatio": "9:16 aspect ratio · ideal for stories",
+      "weeklyGridLink": "Weekster"
+    },
+    "delta": {
+      "sameAsLastWeek": "same as last week",
+      "scrobbles": "{sign}{count} scrobbles",
+      "scrobblesWithPercent": "{sign}{count} scrobbles ({percentSign}{percent}%)"
+    },
+    "export": {
+      "generatingPng": "Generating PNG...",
+      "downloadCapsule": "Download capsule",
+      "generating": "Generating...",
+      "downloadCapsulePng": "Download capsule PNG"
+    },
+    "share": {
+      "title": "My Capsule — Weekster Hub"
+    }
+  },
+  "wrapped": {
+    "header": "Wrapped · {period}",
+    "scrobblesInPeriod": "scrobbles in period",
+    "columns": {
+      "artists": "Artists",
+      "albums": "Albums",
+      "tracks": "Tracks"
+    },
+    "report": {
+      "days": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "versusLastWeek": "↑ {percent}% versus last week",
+      "thisWeek": "This week",
+      "lastWeek": "Last week",
+      "shareSummary": "SHARE SUMMARY",
+      "shareTitle": "My Wrapped — Weekster Hub",
+      "categories": {
+        "artists": "Artists",
+        "albums": "Albums",
+        "tracks": "Tracks"
+      },
+      "badges": {
+        "topArtist": "Top artist",
+        "topAlbum": "Top album",
+        "topTrack": "Top track"
+      },
+      "newItems": {
+        "artists": "New artists",
+        "albums": "New albums",
+        "tracks": "New tracks"
+      },
+      "insufficientData": "Insufficient data",
+      "itemScrobbles": "{count} scrobbles",
+      "tables": "Tables",
+      "musicalCoefficient": "Musical Coefficient",
+      "listeningFingerprint": "Your Listening Fingerprint",
+      "you": "You",
+      "globalAverage": "Global average",
+      "radar": {
+        "consistency": "Consistency",
+        "discoveryRate": "Discovery rate",
+        "variation": "Variation",
+        "concentration": "Concentration",
+        "repetitionRate": "Repetition rate"
+      },
+      "topTags": "Most Played Tags",
+      "vsPreviousWeek": "vs. {count} (last week)"
+    }
+  },
+  "discovery": {
+    "badge": "Discovery",
+    "charts": {
+      "title": "Global charts",
+      "subtitle": "What the world is listening to on Last.fm right now",
+      "tabs": {
+        "artists": "Artists",
+        "tracks": "Tracks"
+      },
+      "topArtists": "Top artists",
+      "topTracks": "Top tracks"
+    },
+    "tags": {
+      "title": "Explore tags",
+      "subtitle": "Browse genres and discover artists and albums by tag on Last.fm",
+      "searchPlaceholder": "Search tag...",
+      "explore": "Explore",
+      "popular": "Popular",
+      "curated": {
+        "rock": "Rock",
+        "indie": "Indie",
+        "electronic": "Electronic",
+        "jazz": "Jazz",
+        "hipHop": "Hip-Hop",
+        "metal": "Metal",
+        "pop": "Pop",
+        "classical": "Classical",
+        "ambient": "Ambient",
+        "soul": "Soul",
+        "punk": "Punk",
+        "folk": "Folk"
+      }
+    },
+    "tag": {
+      "badge": "Tag",
+      "subtitle": "Most played artists and albums with this tag",
+      "artists": "Artists",
+      "albums": "Albums",
+      "noAlbums": "No albums found for this tag."
+    },
+    "artist": {
+      "badge": "Artist",
+      "stats": "{listeners, number} listeners · {playcount, number} global scrobbles",
+      "similar": "Similar artists"
+    }
+  },
+  "social": {
+    "badge": "Social",
+    "compare": {
+      "title": "Compare taste",
+      "subtitle": "See how many artists two Last.fm profiles have in common",
+      "profileA": "Profile A",
+      "profileB": "Profile B",
+      "placeholderYourUser": "your username",
+      "placeholderOtherUser": "other username",
+      "submit": "Compare profiles",
+      "overlapPercent": "{percent}%",
+      "overlapLabel": "overlap in top 50 artists",
+      "inCommon": "In common",
+      "onlyUser": "Only {username}",
+      "commonArtists": "Artists in common"
+    },
+    "friends": {
+      "title": "Friends",
+      "count": "{count, plural, one {# public friend} other {# public friends}} of @{username}",
+      "network": "Public network of @{username}",
+      "compareTaste": "Compare taste",
+      "empty": "No public friends found.",
+      "privacyNote": "The list depends on privacy settings on Last.fm.",
+      "compare": "Compare",
+      "viewProfileAria": "View profile of {name}"
+    }
+  },
+  "export": {
+    "downloadPng": "Download PNG",
+    "generating": "Generating...",
+    "holdToSave": "Press and hold the image",
+    "holdToSaveSuffix": "to save.",
+    "close": "Close",
+    "previewAlt": "Export"
+  },
+  "periods": {
+    "7day": "7 days",
+    "15day": "15 days",
+    "30day": "30 days",
+    "1month": "1 month",
+    "3month": "3 months",
+    "6month": "6 months",
+    "12month": "12 months",
+    "overall": "All time",
+    "range": "{from} — {to}",
+    "12monthTooltip": "Rolling last 12 months",
+    "12monthLabel": "Scrobbles (12 months)"
+  },
+  "session": {
+    "viewingProfile": "Viewing @{username}'s profile",
+    "backToMyDashboard": "Back to my dashboard",
+    "logout": "Log out",
+    "loggedInAs": "Signed in as @{username}"
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page not found",
+      "description": "User or route does not exist on Weekster Hub.",
+      "backHome": "← Back to home"
+    },
+    "api": {
+      "userNotFound": "User not found.",
+      "userFetchFailed": "Failed to fetch user.",
+      "sessionNotConfigured": "Session not configured on the server (SESSION_SECRET missing).",
+      "albumsLoadFailed": "Could not load albums.",
+      "albumsFetchFailed": "Failed to fetch albums.",
+      "artistImageFailed": "Failed to fetch artist image."
+    },
+    "generic": "Something went wrong. Please try again."
+  },
+  "footer": {
+    "brand": "Weekster Hub",
+    "dataVia": "Data via",
+    "lastfmApi": "Last.fm API",
+    "charts": "Charts",
+    "tags": "Tags",
+    "author": "Igor Moura",
+    "disclaimer": "Not affiliated with Last.fm. Scrobbles and trademarks belong to their respective owners.",
+    "copyright": "© {year}"
+  }
+}

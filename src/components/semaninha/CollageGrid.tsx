@@ -2,12 +2,13 @@
 
 import { CoverImage } from '@/components/CoverImage';
 import { truncateText } from '@/lib/images';
+import { GridLayout } from '@/lib/semaninha-params';
 import { CollageAlbum } from '@/lib/semaninha-params';
 import { CollageGap, CollageLabelMode, CollageRadius } from './CollageControls';
 import { cn } from '@/lib/utils';
 
-const GAP_MAP: Record<CollageGap, string> = { '0': '0px', '1': '1px', '4': '4px' };
-const RADIUS_MAP: Record<CollageRadius, string> = { '0': '0px', 'md': '4px', 'lg': '8px' };
+const GAP_MAP: Record<CollageGap, string> = { '0': '0px', '1': '1px', '4': '4px', '8': '8px' };
+const RADIUS_MAP: Record<CollageRadius, string> = { '0': '0px', 'md': '4px', 'lg': '8px', 'xl': '12px' };
 
 interface CollageCellProps {
     album: CollageAlbum;
@@ -43,7 +44,7 @@ function CollageCell({ album, showLabels, labelMode, radius }: CollageCellProps)
 
 interface CollageGridProps {
     albums: CollageAlbum[];
-    gridSize: 3 | 5 | 10;
+    layout: GridLayout;
     showLabels: boolean;
     gap?: CollageGap;
     radius?: CollageRadius;
@@ -53,20 +54,27 @@ interface CollageGridProps {
 
 export function CollageGrid({
     albums,
-    gridSize,
+    layout,
     showLabels,
     gap = '0',
     radius = '0',
     showBorder = true,
     labelMode = 'both',
 }: CollageGridProps) {
+    const emptyCells = Math.max(0, layout.count - albums.length);
+    const isWide = layout.cols > layout.rows;
+
     return (
         <div
-            className={cn('grid w-full max-w-lg mx-auto', showBorder && 'border border-white/10')}
+            className={cn(
+                'grid w-full mx-auto',
+                isWide ? 'max-w-2xl' : layout.rows > layout.cols ? 'max-w-sm' : 'max-w-lg',
+                showBorder && 'border border-white/10'
+            )}
             style={{
-                gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+                gridTemplateColumns: `repeat(${layout.cols}, 1fr)`,
                 gap: GAP_MAP[gap],
-                aspectRatio: '1 / 1',
+                aspectRatio: `${layout.cols} / ${layout.rows}`,
             }}
         >
             {albums.map((album, i) => (
@@ -78,7 +86,7 @@ export function CollageGrid({
                     radius={radius}
                 />
             ))}
-            {Array.from({ length: Math.max(0, gridSize * gridSize - albums.length) }).map((_, i) => (
+            {Array.from({ length: emptyCells }).map((_, i) => (
                 <div
                     key={`empty-${i}`}
                     className="aspect-square bg-neutral-900"

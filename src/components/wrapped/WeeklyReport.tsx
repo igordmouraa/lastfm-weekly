@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { WeeklyData } from "@/types/lastfm";
 import { ProxyImage } from '@/components/ProxyImage';
 import { LastFmImage } from "@/types/lastfm";
@@ -76,8 +77,12 @@ const useArtistImage = (artistName: string | undefined) => {
     return imageUrl;
 };
 
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+
 /* ───────── Componente Principal ───────── */
 export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
+    const tr = useTranslations('wrapped.report');
+    const tc = useTranslations('common');
     const { artists, albums, tracks, dailyStats, totalScrobbles,
         uniqueArtistCount, uniqueAlbumCount, uniqueTrackCount,
         prevWeekData, topTags, dailyTagData } = data;
@@ -88,8 +93,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
     /* ── Helpers ── */
     const getDayOfWeek = (dateStr: string) => {
         const date = new Date(dateStr + 'T12:00:00');
-        const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-        return days[date.getDay()];
+        return tr(`days.${DAY_KEYS[date.getDay()]}`);
     };
 
     const maxDaily = Math.max(...dailyStats.map(d => d.count), 1);
@@ -176,11 +180,11 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
         const repetitionRate = trackCount > 0 ? Math.round(Math.min(100, (totalScrobbles / trackCount) * 25)) : 0;
 
         return [
-            { subject: 'Consistência', you: consistency, global: 55 },
-            { subject: 'Descobrir taxa', you: discoveryRate, global: 50 },
-            { subject: 'Variação', you: variation, global: 45 },
-            { subject: 'Concentração', you: concentration, global: 40 },
-            { subject: 'Taxa de repetições', you: repetitionRate, global: 35 },
+            { subject: tr('radar.consistency'), you: consistency, global: 55 },
+            { subject: tr('radar.discoveryRate'), you: discoveryRate, global: 50 },
+            { subject: tr('radar.variation'), you: variation, global: 45 },
+            { subject: tr('radar.concentration'), you: concentration, global: 40 },
+            { subject: tr('radar.repetitionRate'), you: repetitionRate, global: 35 },
         ];
     };
 
@@ -189,7 +193,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
             ? `${window.location.origin}/${encodeURIComponent(username)}/week`
             : window.location.href;
         if (navigator.share) {
-            await navigator.share({ title: 'Meu Wrapped — Weekster Hub', url });
+            await navigator.share({ title: tr('shareTitle'), url });
         } else {
             await navigator.clipboard.writeText(url);
         }
@@ -198,9 +202,9 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
     const radarData = computeRadar();
 
     const radialData = [
-        { name: 'Faixas', value: trackCount, fill: '#38bdf8' },
-        { name: 'Álbuns', value: albumCount, fill: '#a78bfa' },
-        { name: 'Artistas', value: artistCount, fill: '#34d399' },
+        { name: tr('categories.tracks'), value: trackCount, fill: '#38bdf8' },
+        { name: tr('categories.albums'), value: albumCount, fill: '#a78bfa' },
+        { name: tr('categories.artists'), value: artistCount, fill: '#34d399' },
     ];
 
     // Tags reais dos top artistas
@@ -219,9 +223,9 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
 
     /* ── Category card accent colors ── */
     const categoryColors = {
-        artists: { bg: 'bg-purple-500/20', accent: '#a78bfa', label: 'Artistas', badge: 'Principal artista', badgeBg: 'bg-purple-500' },
-        albums: { bg: 'bg-emerald-500/20', accent: '#34d399', label: 'Álbuns', badge: 'Principal álbum', badgeBg: 'bg-emerald-500' },
-        tracks: { bg: 'bg-sky-500/20', accent: '#38bdf8', label: 'Faixas', badge: 'Faixa principal', badgeBg: 'bg-sky-500' },
+        artists: { bg: 'bg-purple-500/20', accent: '#a78bfa', label: tr('categories.artists'), badge: tr('badges.topArtist'), badgeBg: 'bg-purple-500' },
+        albums: { bg: 'bg-emerald-500/20', accent: '#34d399', label: tr('categories.albums'), badge: tr('badges.topAlbum'), badgeBg: 'bg-emerald-500' },
+        tracks: { bg: 'bg-sky-500/20', accent: '#38bdf8', label: tr('categories.tracks'), badge: tr('badges.topTrack'), badgeBg: 'bg-sky-500' },
     };
 
     return (
@@ -237,10 +241,10 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                     {/* Left: Scrobble count */}
                     <div>
                         <p className="text-xs font-bold text-pink-900/70 tracking-wider uppercase mb-1">
-                            ↑ {scrobbleChangePercent}% versus semana passada
+                            {tr('versusLastWeek', { percent: scrobbleChangePercent })}
                         </p>
                         <h2 className="text-4xl md:text-5xl font-black text-neutral-950 tracking-tighter leading-none">
-                            {totalScrobbles.toLocaleString()} <span className="text-3xl md:text-4xl">scrobbles</span>
+                            {totalScrobbles.toLocaleString()} <span className="text-3xl md:text-4xl">{tc('scrobbles')}</span>
                         </h2>
                     </div>
 
@@ -249,10 +253,10 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                         {/* Legend */}
                         <div className="flex items-center gap-4 text-[10px] font-bold text-neutral-900/60">
                             <span className="flex items-center gap-1">
-                                <span className="w-2 h-2 rounded-sm bg-neutral-900 inline-block" /> Essa semana
+                                <span className="w-2 h-2 rounded-sm bg-neutral-900 inline-block" /> {tr('thisWeek')}
                             </span>
                             <span className="flex items-center gap-1">
-                                <span className="w-2 h-2 rounded-sm bg-neutral-900/30 inline-block" /> Semana passada
+                                <span className="w-2 h-2 rounded-sm bg-neutral-900/30 inline-block" /> {tr('lastWeek')}
                             </span>
                         </div>
                         {/* Bars */}
@@ -296,7 +300,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                         className="flex items-center gap-2 bg-neutral-950 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors"
                     >
                         <Share2 size={14} />
-                        COMPARTILHAR RESUMO
+                        {tr('shareSummary')}
                     </button>
                 </div>
             </div>
@@ -330,7 +334,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                             playcount: artists[artists.length - 1]?.playcount || '0',
                             image: artists[artists.length - 1]?.image,
                         } : null}
-                        newLabel="Novos artistas"
+                        newLabel={tr('newItems.artists')}
                     />
 
                     {/* ─── ÁLBUNS ─── */}
@@ -356,7 +360,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                             playcount: albums[albums.length - 1]?.playcount || '0',
                             image: albums[albums.length - 1]?.image,
                         } : null}
-                        newLabel="Novos álbuns"
+                        newLabel={tr('newItems.albums')}
                     />
 
                     {/* ─── FAIXAS ─── */}
@@ -382,7 +386,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                             playcount: tracks[tracks.length - 1]?.playcount || '0',
                             image: tracks[tracks.length - 1]?.image,
                         } : null}
-                        newLabel="Novas faixas"
+                        newLabel={tr('newItems.tracks')}
                     />
                 </div>
             </div>
@@ -394,7 +398,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                 {/* Section title */}
                 <div className="mb-6">
                     <h2 className="text-xl md:text-2xl font-black text-white tracking-wider uppercase">
-                        Tabelas
+                        {tr('tables')}
                     </h2>
                     <div className="w-10 h-1 bg-emerald-400 mt-2 rounded-full" />
                 </div>
@@ -404,7 +408,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                     {/* Coeficiente Musical (Radial) */}
                     <div className="bg-neutral-900/60 border border-white/5 rounded-2xl p-6">
                         <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">
-                            Coeficiente Musical
+                            {tr('musicalCoefficient')}
                         </h3>
                         <div className="flex flex-col sm:flex-row items-center gap-6">
                             <div className="w-44 h-44 shrink-0">
@@ -426,14 +430,14 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                             </div>
                             <div className="flex flex-col gap-4">
                                 {[
-                                    { label: 'Faixas', value: totalScrobbles, prev: prevWeekScrobbles },
-                                    { label: 'Álbuns', value: albumCount, prev: prevAlbumCount },
-                                    { label: 'Artistas', value: artistCount, prev: prevArtistCount },
+                                    { label: tr('categories.tracks'), value: totalScrobbles, prev: prevWeekScrobbles },
+                                    { label: tr('categories.albums'), value: albumCount, prev: prevAlbumCount },
+                                    { label: tr('categories.artists'), value: artistCount, prev: prevArtistCount },
                                 ].map(item => (
                                     <div key={item.label}>
                                         <p className="text-xs text-neutral-500 font-medium">{item.label}</p>
                                         <p className="text-2xl font-black text-white leading-none">{item.value}</p>
-                                        <p className="text-[10px] text-neutral-500">vs. {item.prev} (semana passada)</p>
+                                        <p className="text-[10px] text-neutral-500">{tr('vsPreviousWeek', { count: item.prev })}</p>
                                     </div>
                                 ))}
                             </div>
@@ -443,14 +447,14 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                     {/* Impressão Digital (Radar) */}
                     <div className="bg-neutral-900/60 border border-white/5 rounded-2xl p-6">
                         <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
-                            Impressão Digital do que Você Ouve
+                            {tr('listeningFingerprint')}
                         </h3>
                         <div className="flex items-center gap-4 mb-4">
                             <span className="flex items-center gap-1.5 text-[10px] text-neutral-400">
-                                <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> Você
+                                <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> {tr('you')}
                             </span>
                             <span className="flex items-center gap-1.5 text-[10px] text-neutral-400">
-                                <span className="w-2 h-2 rounded-full bg-neutral-500 inline-block" /> Média global
+                                <span className="w-2 h-2 rounded-full bg-neutral-500 inline-block" /> {tr('globalAverage')}
                             </span>
                         </div>
                         <div className="w-full h-56">
@@ -462,14 +466,14 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                                         tick={{ fill: '#888', fontSize: 10 }}
                                     />
                                     <Radar
-                                        name="Média global"
+                                        name={tr('globalAverage')}
                                         dataKey="global"
                                         stroke="#666"
                                         fill="#666"
                                         fillOpacity={0.15}
                                     />
                                     <Radar
-                                        name="Você"
+                                        name={tr('you')}
                                         dataKey="you"
                                         stroke="#a78bfa"
                                         fill="#a78bfa"
@@ -484,7 +488,7 @@ export const WeeklyReport = ({ data, username }: WeeklyReportProps) => {
                 {/* Bottom row: Tags mais ouvidas (Stacked Area) */}
                 <div className="bg-neutral-900/60 border border-white/5 rounded-2xl p-6">
                     <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6">
-                        Tags Mais Ouvidas
+                        {tr('topTags')}
                     </h3>
                     <div className="w-full h-64">
                         <ResponsiveContainer width="100%" height="100%">
@@ -574,7 +578,7 @@ const CategoryColumn = ({
     newTopItem,
     newLabel,
 }: CategoryColumnProps) => {
-    // Prioridade: imagem externa (Deezer) > imagem do álbum (Last.fm fallback)
+    const tr = useTranslations('wrapped.report');
     const lastfmImageUrl = topItem?.image ? getImageUrl(topItem.image) : null;
     const topImageUrl = externalImageUrl || lastfmImageUrl;
     const newItemImageUrl = newTopItem?.image ? getImageUrl(newTopItem.image) : null;
@@ -624,7 +628,7 @@ const CategoryColumn = ({
                                 )}
                             </div>
                             <span className="text-[10px] text-white/50 font-medium shrink-0 ml-2">
-                                {topItem.playcount} scrobbles
+                                {tr('itemScrobbles', { count: topItem.playcount })}
                             </span>
                         </div>
                     </div>
@@ -652,7 +656,7 @@ const CategoryColumn = ({
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-sm text-neutral-500 italic text-center py-4">Sem dados suficientes</p>
+                    <p className="text-sm text-neutral-500 italic text-center py-4">{tr('insufficientData')}</p>
                 )}
             </div>
 
@@ -683,7 +687,7 @@ const CategoryColumn = ({
                                 #1 {truncateText(newTopItem.name, 22)}
                             </p>
                             <p className="text-[10px] text-neutral-500">
-                                {newTopItem.playcount} scrobbles
+                                {tr('itemScrobbles', { count: newTopItem.playcount })}
                             </p>
                         </div>
                     </div>

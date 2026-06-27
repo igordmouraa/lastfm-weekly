@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { RankedList } from '@/components/discovery/RankedList';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ const fadeUp = {
 };
 
 export function ChartsView({ artists, tracks }: ChartsViewProps) {
+    const t = useTranslations('discovery');
     const [tab, setTab] = useState<'artists' | 'tracks'>('artists');
 
     const artistItems = artists.map((a) => ({
@@ -24,11 +26,11 @@ export function ChartsView({ artists, tracks }: ChartsViewProps) {
         image: a.imageUrl,
     }));
 
-    const trackItems = tracks.map((t) => ({
-        name: t.name,
-        playcount: t.playcount,
-        image: t.imageUrl,
-        sub: t.artist,
+    const trackItems = tracks.map((track) => ({
+        name: track.name,
+        playcount: track.playcount,
+        image: track.imageUrl,
+        sub: track.artist,
     }));
 
     return (
@@ -39,25 +41,25 @@ export function ChartsView({ artists, tracks }: ChartsViewProps) {
             className="space-y-8 -mt-2"
         >
             <motion.header variants={fadeUp}>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1">Discovery</p>
-                <h1 className="text-2xl font-display font-bold tracking-tight">Charts globais</h1>
-                <p className="text-sm text-neutral-500 mt-1">O que o mundo está ouvindo no Last.fm agora</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1">{t('badge')}</p>
+                <h1 className="text-2xl font-display font-bold tracking-tight">{t('charts.title')}</h1>
+                <p className="text-sm text-neutral-500 mt-1">{t('charts.subtitle')}</p>
             </motion.header>
 
             <motion.div variants={fadeUp} className="flex gap-2">
-                {(['artists', 'tracks'] as const).map((t) => (
+                {(['artists', 'tracks'] as const).map((tabKey) => (
                     <button
-                        key={t}
+                        key={tabKey}
                         type="button"
-                        onClick={() => setTab(t)}
+                        onClick={() => setTab(tabKey)}
                         className={cn(
                             'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
-                            tab === t
+                            tab === tabKey
                                 ? 'bg-red-500/20 border-red-500/50 text-red-400'
                                 : 'border-white/10 text-neutral-500 hover:text-white'
                         )}
                     >
-                        {t === 'artists' ? 'Artistas' : 'Faixas'}
+                        {t(`charts.tabs.${tabKey}`)}
                     </button>
                 ))}
             </motion.div>
@@ -72,7 +74,7 @@ export function ChartsView({ artists, tracks }: ChartsViewProps) {
                         className="text-xs font-bold uppercase tracking-widest"
                         style={{ color: tab === 'artists' ? '#a78bfa' : '#38bdf8' }}
                     >
-                        Top {tab === 'artists' ? 'artistas' : 'faixas'}
+                        {tab === 'artists' ? t('charts.topArtists') : t('charts.topTracks')}
                     </h2>
                 </div>
                 <div className="grid lg:grid-cols-2 gap-x-10">

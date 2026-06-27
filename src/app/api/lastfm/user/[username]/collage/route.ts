@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCollageAlbums } from '@/lib/lastfm/aggregators/collage';
-import { parseDays, CollageCount } from '@/lib/semaninha-params';
+import { clampCollageCount, parseDays } from '@/lib/semaninha-params';
 import { LastFmError } from '@/lib/lastfm/client';
 
 interface RouteParams {
     params: Promise<{ username: string }>;
 }
 
-const VALID_COUNTS = new Set<CollageCount>([9, 25, 100]);
-
 export async function GET(request: NextRequest, { params }: RouteParams) {
     const { username } = await params;
     const days = parseDays(request.nextUrl.searchParams.get('days') ?? '7');
     const countParam = parseInt(request.nextUrl.searchParams.get('count') ?? '25', 10);
-    const count = (VALID_COUNTS.has(countParam as CollageCount) ? countParam : 25) as CollageCount;
+    const count = clampCollageCount(countParam);
 
     try {
         const albums = await getCollageAlbums({ username, days, count, resolveCovers: true });

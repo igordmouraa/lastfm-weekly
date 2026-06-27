@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { motion } from 'framer-motion';
+import { useLocale, useTranslations } from 'next-intl';
 import { DashboardData, WeeklyData } from '@/types/lastfm';
 import { CoverImage } from '@/components/CoverImage';
 import { NowPlayingCard } from '@/components/dashboard/NowPlayingCard';
@@ -10,6 +11,7 @@ import { SemaninhaPreviewCard } from '@/components/dashboard/SemaninhaPreviewCar
 import { CapsulePreviewCard } from '@/components/dashboard/CapsulePreviewCard';
 import { WeeklyTagsPanel } from '@/components/dashboard/WeeklyTagsPanel';
 import { getImageUrl } from '@/lib/images';
+import { getIntlLocale } from '@/lib/i18n/format';
 import { Disc3, Headphones } from 'lucide-react';
 
 interface DashboardHubProps {
@@ -29,6 +31,10 @@ const stagger = {
 };
 
 function DashboardContent({ data, weekly, username }: DashboardHubProps) {
+    const t = useTranslations('dashboard');
+    const tc = useTranslations('common');
+    const locale = useLocale();
+    const intlLocale = getIntlLocale(locale);
     const avatar = getImageUrl(data.user.image);
     const topArtist = data.artists[0];
     const topArtistImage = topArtist?.imageUrl || getImageUrl(topArtist?.image);
@@ -46,11 +52,11 @@ function DashboardContent({ data, weekly, username }: DashboardHubProps) {
                         className="w-14 h-14 rounded-2xl ring-2 ring-red-500/20"
                     />
                     <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-0.5">Perfil</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-0.5">{t('profile')}</p>
                         <h1 className="text-2xl font-display font-bold tracking-tight truncate">{data.user.name}</h1>
                         <p className="text-sm text-neutral-500 flex items-center gap-1.5 mt-0.5">
                             <Disc3 className="w-3.5 h-3.5" />
-                            {data.totalScrobbles.toLocaleString('pt-BR')} scrobbles
+                            {data.totalScrobbles.toLocaleString(intlLocale)} {tc('scrobbles')}
                         </p>
                     </div>
                 </div>
@@ -59,10 +65,10 @@ function DashboardContent({ data, weekly, username }: DashboardHubProps) {
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-neutral-600 flex items-center gap-1.5 mb-0.5">
                             <Headphones className="w-3 h-3 text-red-400" />
-                            Scrobbles · 7 dias
+                            {t('scrobblesSevenDays')}
                         </p>
                         <p className="text-2xl font-display font-bold tabular-nums leading-none">
-                            {data.periodScrobbles.toLocaleString('pt-BR')}
+                            {data.periodScrobbles.toLocaleString(intlLocale)}
                         </p>
                     </div>
 
@@ -71,13 +77,13 @@ function DashboardContent({ data, weekly, username }: DashboardHubProps) {
                     <div className="flex items-center gap-3 min-w-0">
                         <CoverImage
                             src={topArtistImage}
-                            alt={topArtist?.name ?? 'Artista'}
+                            alt={topArtist?.name ?? tc('artistFallback')}
                             className="w-10 h-10 rounded-full ring-1 ring-white/10 shrink-0"
                         />
                         <div className="min-w-0">
-                            <p className="text-[10px] uppercase tracking-widest text-neutral-600 mb-0.5">Artista #1</p>
+                            <p className="text-[10px] uppercase tracking-widest text-neutral-600 mb-0.5">{tc('artistNumberOne')}</p>
                             <p className="text-sm font-bold text-red-400 truncate max-w-[140px]">
-                                {topArtist?.name ?? '—'}
+                                {topArtist?.name ?? tc('emDash')}
                             </p>
                         </div>
                     </div>

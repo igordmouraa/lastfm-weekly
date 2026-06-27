@@ -1,50 +1,22 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { ReactNode, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { usePathname } from '@/i18n/navigation';
+import { ReactNode, useMemo } from 'react';
 import { UserProvider } from './UserContext';
 import { AppShell } from './AppShell';
-import { getStoredUsername, setStoredUsername } from '@/lib/session-user';
+import { extractViewedUserFromPath } from '@/lib/session/path';
 
-const GLOBAL_ROUTES = new Set(['charts', 'compare', 'gallery', 'tags', 'artist', 'tag']);
-const USER_CHANGE_EVENT = 'lastfm-hub-user-change';
-
-function extractUsernameFromPath(pathname: string): string | null {
-    const parts = pathname.split('/').filter(Boolean);
-    if (parts.length === 0) return null;
-    if (GLOBAL_ROUTES.has(parts[0])) return null;
-    try {
-        return decodeURIComponent(parts[0]);
-    } catch {
-        return parts[0];
-    }
+interface AppShellWithUserProps {
+    currentUser: string | null;
+    children: ReactNode;
 }
 
-function subscribeStoredUser(onChange: () => void) {
-    window.addEventListener(USER_CHANGE_EVENT, onChange);
-    return () => window.removeEventListener(USER_CHANGE_EVENT, onChange);
-}
-
-function getStoredUserSnapshot(): string | null {
-    return getStoredUsername();
-}
-
-export function AppShellWithUser({ children }: { children: ReactNode }) {
+export function AppShellWithUser({ currentUser, children }: AppShellWithUserProps) {
     const pathname = usePathname();
-    const pathUser = useMemo(() => extractUsernameFromPath(pathname), [pathname]);
-    const storedUser = useSyncExternalStore(subscribeStoredUser, getStoredUserSnapshot, () => null);
-
-    useEffect(() => {
-        if (pathUser) {
-            setStoredUsername(pathUser);
-            window.dispatchEvent(new Event(USER_CHANGE_EVENT));
-        }
-    }, [pathUser]);
-
-    const username = pathUser ?? storedUser;
+    const viewedUser = useMemo(() => extractViewedUserFromPath(pathname), [pathname]);
 
     return (
-        <UserProvider username={username}>
+        <UserProvider currentUser={currentUser} viewedUser={viewedUser}>
             <AppShell>{children}</AppShell>
         </UserProvider>
     );
