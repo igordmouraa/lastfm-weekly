@@ -7,6 +7,8 @@ import { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
 
+export const revalidate = 86400;
+
 interface PageProps {
     params: Promise<{ locale: string; slug: string }>;
 }
@@ -23,7 +25,7 @@ export default async function ArtistPage({ params }: PageProps) {
 
     let data;
     try {
-        data = await getArtistProfile(slug);
+        data = await getArtistProfile(slug, { resolveImages: false });
     } catch (err) {
         if (err instanceof LastFmError) notFound();
         throw err;

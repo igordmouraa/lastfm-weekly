@@ -26,11 +26,11 @@ export function TopList({ title, items, accent = '#ef4444', showArtist = false, 
             <h3 className="text-sm font-bold uppercase tracking-widest" style={{ color: accent }}>{title}</h3>
             <ul className="space-y-3">
                 {items.map((item, idx) => {
-                    const img = item.imageUrl ?? getImageUrl(item.image);
+                    const img = item.imageUrl ?? getImageUrl(item.image, 'thumb');
                     const inner = (
                         <>
                             <span className="text-xs font-black text-neutral-600 w-4">{idx + 1}</span>
-                            <CoverImage src={img} alt={item.name} className="w-10 h-10 rounded-md" />
+                            <CoverImage src={img} alt={item.name} className="w-10 h-10 rounded-md" size={40} />
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium truncate group-hover:text-red-400 transition-colors">
                                     {truncateText(item.name, 28)}

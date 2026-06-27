@@ -18,9 +18,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useShell } from './AppShell';
-import { useCurrentUser } from './UserContext';
+import { useCurrentUser, useSessionStatus } from './UserContext';
 import { SidebarUserPanel } from './SidebarUserPanel';
-import { NowPlayingWidget } from './NowPlayingWidget';
+import { NowPlayingWidget, NowPlayingPlaceholder } from './NowPlayingWidget';
 
 interface NavItem {
     id: string;
@@ -84,6 +84,7 @@ export function SidebarNav() {
     const pathname = usePathname();
     const { collapsed, toggleCollapsed, setMobileOpen, mobileOpen } = useShell();
     const currentUser = useCurrentUser();
+    const sessionStatus = useSessionStatus();
     const t = useTranslations('nav');
     const groups = buildNavGroups(currentUser, t);
 
@@ -197,9 +198,20 @@ export function SidebarNav() {
                 ))}
             </nav>
 
-            {currentUser && <NowPlayingWidget collapsed={collapsed} />}
-
-            <SidebarUserPanel key={currentUser ?? 'guest'} collapsed={collapsed} />
+            <div
+                className={cn(
+                    'mt-auto shrink-0',
+                    collapsed ? 'min-h-[80px]' : 'min-h-[120px]'
+                )}
+            >
+                {(currentUser || sessionStatus === 'loading') &&
+                    (currentUser ? (
+                        <NowPlayingWidget collapsed={collapsed} />
+                    ) : (
+                        <NowPlayingPlaceholder collapsed={collapsed} />
+                    ))}
+                <SidebarUserPanel collapsed={collapsed} />
+            </div>
         </>
     );
 }

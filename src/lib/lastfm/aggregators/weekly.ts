@@ -1,41 +1,18 @@
 import {
     WeeklyData,
-    LastFmUserInfoResponse,
-    WeightedTag,
     DailyTagData,
     RecentTracksResponse,
     LastFmImage,
 } from '@/types/lastfm';
 import { startOfWeek, endOfWeek, getUnixTime, format, subWeeks } from 'date-fns';
 import { fetchLastFm, asArray } from '../client';
+import { getUserInfo } from '../user';
 import { processRecentTracks } from './recent-tracks';
-import { getArtistTopTags } from '../chart';
 import { enrichWithImages } from '../resolve-image';
+import { cacheAggregator } from '../server-cache';
+import { fetchArtistTagsMap, weightTagsFromArtistMap } from './weekly-tags';
 
-async function fetchTopArtistTagsMap(
-    artists: Array<{ name: string; count: number }>,
-    maxArtists = 5
-): Promise<Map<string, string[]>> {
-    const artistTagsMap = new Map<string, string[]>();
-    const results = await Promise.all(
-        artists.slice(0, maxArtists).map(async (artist) => {
-            try {
-                const tags = await getArtistTopTags(artist.name);
-                const filtered = tags
-                    .filter((t) => t.name && (t.count ?? 0) > 0)
-                    .slice(0, 5)
-                    .map((t) => t.name.toLowerCase());
-                return { name: artist.name, tags: filtered };
-            } catch {
-                return { name: artist.name, tags: [] as string[] };
-            }
-        })
-    );
-    results.forEach((r) => artistTagsMap.set(r.name, r.tags));
-    return artistTagsMap;
-}
-
-export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData> {
+async function fetchUserWeeklyWrapped(username: string): Promise<WeeklyData> {
     const now = new Date();
     const fromDate = startOfWeek(now, { weekStartsOn: 5 });
     const toDate = endOfWeek(now, { weekStartsOn: 5 });
@@ -47,10 +24,20 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
     const prevFrom = getUnixTime(prevFromDate).toString();
     const prevTo = getUnixTime(prevToDate).toString();
 
-    const [userInfoData, recentTracksData, prevRecentTracksData] = await Promise.all([
-        fetchLastFm<LastFmUserInfoResponse>('user.getInfo', { user: username }),
-        fetchLastFm<RecentTracksResponse>('user.getRecentTracks', { user: username, from, to, limit: '1000' }),
-        fetchLastFm<RecentTracksResponse>('user.getRecentTracks', { user: username, from: prevFrom, to: prevTo, limit: '1000' }),
+    const recentOpts = { revalidate: 120, tags: [`lastfm:user:${username}:recent`] as string[] };
+
+    const [user, recentTracksData, prevRecentTracksData] = await Promise.all([
+        getUserInfo(username),
+        fetchLastFm<RecentTracksResponse>(
+            'user.getRecentTracks',
+            { user: username, from, to, limit: '1000' },
+            recentOpts
+        ),
+        fetchLastFm<RecentTracksResponse>(
+            'user.getRecentTracks',
+            { user: username, from: prevFrom, to: prevTo, limit: '1000' },
+            recentOpts
+        ),
     ]);
 
     const trackList = asArray(recentTracksData.recenttracks.track);
@@ -89,22 +76,8 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
     };
 
     const allArtistsSorted = Array.from(currentWeek.artistsMap.values()).sort((a, b) => b.count - a.count);
-    const artistTagsMap = await fetchTopArtistTagsMap(allArtistsSorted, 5);
-
-    const tagWeightMap = new Map<string, number>();
-    allArtistsSorted.forEach((artist) => {
-        const tags = artistTagsMap.get(artist.name) || [];
-        tags.forEach((tag, idx) => {
-            const weight = artist.count * (1 - idx * 0.15);
-            tagWeightMap.set(tag, (tagWeightMap.get(tag) || 0) + weight);
-        });
-    });
-
-    const topTags: WeightedTag[] = Array.from(tagWeightMap.entries())
-        .map(([name, count]) => ({ name, count: Math.round(count) }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 7);
-
+    const artistTagsMap = await fetchArtistTagsMap(allArtistsSorted, 5);
+    const topTags = weightTagsFromArtistMap(allArtistsSorted, artistTagsMap);
     const topTagNames = topTags.map((t) => t.name);
     const allDates = Array.from(currentWeek.dailyMap.keys()).sort();
 
@@ -152,10 +125,10 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
 
     return {
         user: {
-            name: userInfoData.user.name,
-            image: userInfoData.user.image,
-            playcount: userInfoData.user.playcount,
-            country: userInfoData.user.country || 'Unknown',
+            name: user.name,
+            image: user.image,
+            playcount: user.playcount,
+            country: user.country || 'Unknown',
         },
         tracks: enrichedTracks.map((t) => ({
             name: t.name,
@@ -188,3 +161,12 @@ export async function getUserWeeklyWrapped(username: string): Promise<WeeklyData
         dailyTagData,
     };
 }
+
+export const getUserWeeklyWrapped = cacheAggregator(
+    'weekly',
+    fetchUserWeeklyWrapped,
+    {
+        revalidate: 600,
+        tags: (username) => [`lastfm:user:${username}:weekly`],
+    }
+);

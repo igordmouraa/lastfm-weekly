@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { CoverImage } from '@/components/CoverImage';
+import { LazyCoverImage } from '@/components/LazyCoverImage';
 import { CollagePreviewItem } from '@/types/lastfm';
 import { LayoutGrid, ArrowUpRight } from 'lucide-react';
 
@@ -37,10 +37,14 @@ export function SemaninhaPreviewCard({ albums, username }: SemaninhaPreviewCardP
                 <div className="grid grid-cols-3 gap-px w-[108px] aspect-square rounded-lg overflow-hidden ring-1 ring-white/10 group-hover:ring-red-500/20 transition-all">
                     {albums.slice(0, 9).map((album, i) => (
                         <div key={i} className="aspect-square bg-neutral-800 overflow-hidden">
-                            <CoverImage
+                            <LazyCoverImage
                                 src={album.imageUrl}
                                 alt={album.name}
                                 className="w-full h-full group-hover:scale-110 transition-transform duration-500"
+                                size={36}
+                                lazyType="album"
+                                lazyArtist={album.artist}
+                                lazyName={album.name}
                             />
                         </div>
                     ))}

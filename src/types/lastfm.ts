@@ -265,11 +265,11 @@ export interface DashboardData {
     user: LastFmUser;
     period: LastFmPeriod;
     artists: (LastFmArtist & { imageUrl?: string | null })[];
-    tracks: LastFmTrack[];
-    albums: LastFmAlbum[];
+    tracks: (LastFmTrack & { imageUrl?: string | null })[];
+    albums: (LastFmAlbum & { imageUrl?: string | null })[];
     tags: LastFmTag[];
     periodScrobbles: number;
     totalScrobbles: number;
     collagePreview: CollagePreviewItem[];
-    nowPlaying: NowPlayingData;
+    weeklyTopTags: WeightedTag[];
 }

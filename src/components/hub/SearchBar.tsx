@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
+import { useSession } from '@/components/shell/SessionProvider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Music2 } from 'lucide-react';
@@ -33,6 +34,7 @@ export function SearchBar({
     const [username, setUsername] = useState(defaultValue);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { setSession } = useSession();
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -57,8 +59,9 @@ export function SearchBar({
                     onError?.(msg);
                     return;
                 }
+                const data = (await res.json()) as { username: string; avatarUrl: string | null };
+                setSession(data.username, data.avatarUrl);
                 router.push(`/${encodeURIComponent(trimmed.toLowerCase())}`);
-                router.refresh();
             } else {
                 router.push(`/${encodeURIComponent(trimmed.toLowerCase())}`);
             }

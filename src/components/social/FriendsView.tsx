@@ -60,7 +60,7 @@ export function FriendsView({ username, friends }: FriendsViewProps) {
             ) : (
                 <motion.ul variants={fadeUp} className="divide-y divide-white/[0.04]">
                     {friends.map((friend) => {
-                        const avatar = getImageUrl(friend.image);
+                        const avatar = getImageUrl(friend.image, 'thumb');
                         const profileHref = `/${encodeURIComponent(friend.name)}`;
                         const compareHref = `/compare?user1=${encodeURIComponent(compareAs)}&user2=${encodeURIComponent(friend.name)}`;
 
@@ -72,6 +72,7 @@ export function FriendsView({ username, friends }: FriendsViewProps) {
                                             src={avatar}
                                             alt={friend.name}
                                             className="w-11 h-11 rounded-full ring-1 ring-white/10 group-hover:ring-red-500/30 transition-all"
+                                            size={44}
                                         />
                                         <div className="min-w-0">
                                             <p className="font-medium truncate group-hover:text-red-400 transition-colors">

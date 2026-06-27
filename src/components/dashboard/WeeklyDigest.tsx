@@ -3,17 +3,26 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { WeeklyData } from '@/types/lastfm';
-import { CoverImage } from '@/components/CoverImage';
+import { LazyCoverImage } from '@/components/LazyCoverImage';
 import { getImageUrl, truncateText } from '@/lib/images';
 
 interface WeeklyDigestProps {
     data: WeeklyData;
 }
 
+interface DigestItem {
+    name: string;
+    sub?: string;
+    playcount?: string;
+    image?: string | null;
+    lazyType?: 'artist' | 'album' | 'track';
+    lazyArtist?: string;
+}
+
 interface DigestColumnProps {
     title: string;
     accent: string;
-    items: { name: string; sub?: string; playcount?: string; image?: ReturnType<typeof getImageUrl> }[];
+    items: DigestItem[];
     linkPrefix?: string;
 }
 
@@ -36,10 +45,14 @@ function DigestColumn({ title, accent, items, linkPrefix }: DigestColumnProps) {
                             >
                                 {i + 1}
                             </span>
-                            <CoverImage
+                            <LazyCoverImage
                                 src={item.image}
                                 alt={item.name}
                                 className="w-9 h-9 rounded-md shrink-0 ring-1 ring-white/5"
+                                size={36}
+                                lazyType={item.lazyType}
+                                lazyArtist={item.lazyArtist}
+                                lazyName={item.name}
                             />
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium truncate group-hover:text-white transition-colors">
@@ -71,7 +84,7 @@ function DigestColumn({ title, accent, items, linkPrefix }: DigestColumnProps) {
 
 function resolveItemImage(item: { image?: unknown; imageUrl?: string | null }): string | null {
     if (item.imageUrl) return item.imageUrl;
-    return getImageUrl(item.image as Parameters<typeof getImageUrl>[0]);
+    return getImageUrl(item.image as Parameters<typeof getImageUrl>[0], 'large');
 }
 
 export function WeeklyDigest({ data }: WeeklyDigestProps) {
@@ -81,20 +94,29 @@ export function WeeklyDigest({ data }: WeeklyDigestProps) {
         name: a.name,
         playcount: a.playcount,
         image: resolveItemImage(a),
+        lazyType: 'artist' as const,
     }));
 
-    const albums = data.albums.slice(0, 5).map((a) => ({
-        name: a.name,
-        sub: typeof a.artist === 'string' ? a.artist : (a.artist as { name?: string })?.name,
-        playcount: a.playcount,
-        image: resolveItemImage(a),
-    }));
+    const albums = data.albums.slice(0, 5).map((a) => {
+        const artist =
+            typeof a.artist === 'string' ? a.artist : (a.artist as { name?: string })?.name ?? '';
+        return {
+            name: a.name,
+            sub: artist,
+            playcount: a.playcount,
+            image: resolveItemImage(a),
+            lazyType: 'album' as const,
+            lazyArtist: artist,
+        };
+    });
 
-    const tracks = data.tracks.slice(0, 5).map((t) => ({
-        name: t.name,
-        sub: t.artist?.name,
-        playcount: t.playcount,
-        image: resolveItemImage(t),
+    const tracks = data.tracks.slice(0, 5).map((track) => ({
+        name: track.name,
+        sub: track.artist?.name,
+        playcount: track.playcount,
+        image: resolveItemImage(track),
+        lazyType: 'track' as const,
+        lazyArtist: track.artist?.name ?? '',
     }));
 
     return (

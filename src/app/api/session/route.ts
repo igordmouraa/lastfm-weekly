@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserInfo } from '@/lib/lastfm/user';
 import { LastFmError } from '@/lib/lastfm/client';
+import { getImageUrl, optimizeImageUrl } from '@/lib/images';
 import {
     clearSessionCookie,
     getCurrentUser,
@@ -8,9 +9,29 @@ import {
 } from '@/lib/session/cookies';
 import { isValidUsername, normalizeUsername, isSessionConfigured } from '@/lib/session/index';
 
+function sessionAvatarUrl(images: Parameters<typeof getImageUrl>[0]): string | null {
+    const url = getImageUrl(images, 'thumb');
+    return url ? optimizeImageUrl(url, 36) : null;
+}
+
+async function sessionPayload(username: string | null) {
+    if (!username) {
+        return { username: null as string | null, avatarUrl: null as string | null };
+    }
+    try {
+        const user = await getUserInfo(username);
+        return { username, avatarUrl: sessionAvatarUrl(user.image) };
+    } catch {
+        return { username, avatarUrl: null as string | null };
+    }
+}
+
 export async function GET() {
     const username = await getCurrentUser();
-    return NextResponse.json({ username });
+    const payload = await sessionPayload(username);
+    return NextResponse.json(payload, {
+        headers: { 'Cache-Control': 'private, no-cache' },
+    });
 }
 
 export async function POST(request: Request) {
@@ -32,8 +53,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Session not configured' }, { status: 503 });
     }
 
+    let user;
     try {
-        await getUserInfo(username);
+        user = await getUserInfo(username);
     } catch (err) {
         if (err instanceof LastFmError && (err.status === 6 || err.status === 404)) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -42,7 +64,10 @@ export async function POST(request: Request) {
     }
 
     await setSessionCookie(username);
-    return NextResponse.json({ username });
+    return NextResponse.json({
+        username,
+        avatarUrl: sessionAvatarUrl(user.image),
+    });
 }
 
 export async function DELETE() {
