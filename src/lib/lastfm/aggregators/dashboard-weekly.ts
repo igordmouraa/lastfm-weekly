@@ -1,6 +1,4 @@
-import { DashboardData, PrevWeekData, WeeklyData, WeightedTag } from '@/types/lastfm';
-import { getArtistTopTags } from '../chart';
-import { enrichWithImages } from '../resolve-image';
+import { DashboardData, PrevWeekData, WeeklyData } from '@/types/lastfm';
 
 const EMPTY_PREV_WEEK: PrevWeekData = {
     totalScrobbles: 0,
@@ -13,79 +11,23 @@ const EMPTY_PREV_WEEK: PrevWeekData = {
     trackKeys: [],
 };
 
-async function computeWeeklyTopTags(
-    artists: { name: string; playcount?: string }[]
-): Promise<WeightedTag[]> {
-    const tagWeightMap = new Map<string, number>();
-
-    const results = await Promise.all(
-        artists.slice(0, 3).map(async (artist) => {
-            try {
-                const tags = await getArtistTopTags(artist.name);
-                const count = parseInt(artist.playcount ?? '0', 10) || 1;
-                return { count, tags };
-            } catch {
-                return { count: 1, tags: [] as { name: string; count?: number }[] };
-            }
-        })
-    );
-
-    results.forEach(({ count, tags }) => {
-        tags
-            .filter((t) => t.name && (t.count ?? 0) > 0)
-            .slice(0, 5)
-            .forEach((tag, idx) => {
-                const weight = count * (1 - idx * 0.15);
-                const key = tag.name.toLowerCase();
-                tagWeightMap.set(key, (tagWeightMap.get(key) || 0) + weight);
-            });
-    });
-
-    return Array.from(tagWeightMap.entries())
-        .map(([name, tagCount]) => ({ name, count: Math.round(tagCount) }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 7);
-}
-
-/** Preview leve para o dashboard — evita o aggregator completo da cápsula. */
-export async function buildDashboardWeeklyPreview(data: DashboardData): Promise<WeeklyData> {
-    const topTags = await computeWeeklyTopTags(data.artists);
-
-    const trackItems = data.tracks.map((t) => ({
-        name: t.name,
-        playcount: t.playcount,
-        image: t.image,
-        artist: t.artist?.name ?? '',
-        album: t.album?.['#text'],
-    }));
-
-    const albumItems = data.albums.slice(0, 5).map((a) => ({
-        name: a.name,
-        playcount: a.playcount,
-        image: a.image,
-        artist: typeof a.artist === 'string' ? a.artist : '',
-    }));
-
-    const [enrichedTracks, enrichedAlbums] = await Promise.all([
-        enrichWithImages(trackItems, 'track', (t) => t.artist),
-        enrichWithImages(albumItems, 'album', (a) => a.artist),
-    ]);
-
+/** Preview síncrono — weeklyTopTags já calculadas em getDashboardData. */
+export function buildDashboardWeeklyPreview(data: DashboardData): WeeklyData {
     return {
         user: data.user,
         artists: data.artists,
-        tracks: enrichedTracks.map((t) => ({
+        tracks: data.tracks.map((t) => ({
             name: t.name,
-            artist: { name: t.artist },
+            artist: { name: t.artist?.name ?? (t.artist as { '#text'?: string })?.['#text'] ?? '' },
             image: t.image,
-            imageUrl: t.imageUrl,
+            imageUrl: t.imageUrl ?? null,
             playcount: t.playcount,
         })),
-        albums: enrichedAlbums.map((a) => ({
+        albums: data.albums.slice(0, 5).map((a) => ({
             name: a.name,
-            artist: a.artist,
+            artist: typeof a.artist === 'string' ? a.artist : (a.artist as { name?: string })?.name ?? '',
             image: a.image,
-            imageUrl: a.imageUrl,
+            imageUrl: a.imageUrl ?? null,
             playcount: a.playcount,
         })),
         dailyStats: [],
@@ -95,7 +37,7 @@ export async function buildDashboardWeeklyPreview(data: DashboardData): Promise<
         uniqueAlbumCount: data.albums.length,
         uniqueTrackCount: data.tracks.length,
         prevWeekData: EMPTY_PREV_WEEK,
-        topTags,
+        topTags: data.weeklyTopTags,
         dailyTagData: [],
     };
 }

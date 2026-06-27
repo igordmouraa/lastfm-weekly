@@ -67,6 +67,7 @@ function TopColumn({ title, accent, items, linkPrefix }: TopColumnProps) {
                                 src={item.image}
                                 alt={item.name}
                                 className="w-9 h-9 rounded-md shrink-0 ring-1 ring-white/5"
+                                size={36}
                             />
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium truncate group-hover:text-white transition-colors">
@@ -104,7 +105,7 @@ function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
     const tc = useTranslations('common');
     const period = parseWrappedPeriod(searchParams.get('period') ?? data.period);
     const base = `/${encodeURIComponent(username)}/wrapped`;
-    const avatar = getImageUrl(data.user.image);
+    const avatar = getImageUrl(data.user.image, 'thumb');
     const periodLabel = getPeriodLabel(period, locale);
     const dateRange = formatPeriodRange(period, locale);
     const wrappedOptions = getWrappedPeriodOptions(locale);
@@ -116,21 +117,21 @@ function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
     const artists = data.artists.map((a) => ({
         name: a.name,
         playcount: a.playcount,
-        image: a.imageUrl || getImageUrl(a.image),
+        image: a.imageUrl || getImageUrl(a.image, 'thumb'),
     }));
 
     const albums = data.albums.map((a) => ({
         name: a.name,
         sub: typeof a.artist === 'string' ? a.artist : (a.artist as { name?: string })?.name,
         playcount: a.playcount,
-        image: a.imageUrl ?? getImageUrl(a.image),
+        image: a.imageUrl ?? getImageUrl(a.image, 'thumb'),
     }));
 
     const tracks = data.tracks.map((t) => ({
         name: t.name,
         sub: t.artist?.name,
         playcount: t.playcount,
-        image: t.imageUrl || getImageUrl(t.image),
+        image: t.imageUrl || getImageUrl(t.image, 'thumb'),
     }));
 
     return (
@@ -141,6 +142,7 @@ function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
                         src={avatar}
                         alt={data.user.name}
                         className="w-14 h-14 rounded-2xl ring-2 ring-red-500/20 shadow-lg shadow-red-900/10"
+                        size={56}
                     />
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-0.5">

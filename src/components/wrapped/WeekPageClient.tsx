@@ -45,7 +45,7 @@ const stagger = {
 
 function resolveImage(item: { image?: unknown; imageUrl?: string | null }): string | null {
     if (item.imageUrl) return item.imageUrl;
-    return getImageUrl(item.image as Parameters<typeof getImageUrl>[0]);
+    return getImageUrl(item.image as Parameters<typeof getImageUrl>[0], 'thumb');
 }
 
 function WeekActivityChart({

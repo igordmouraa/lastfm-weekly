@@ -1,7 +1,14 @@
 import { getGlobalTopArtists, getGlobalTopTracks } from '../chart';
 import { enrichWithImages } from '../resolve-image';
+import { cacheAggregator } from '../server-cache';
 
-export async function getChartsData(limit = 20) {
+export interface ChartsDataOptions {
+    resolveImages?: boolean;
+}
+
+async function fetchChartsData(limit: number, options: ChartsDataOptions = {}) {
+    const resolveImages = options.resolveImages !== false;
+
     const [artists, tracks] = await Promise.all([
         getGlobalTopArtists(limit),
         getGlobalTopTracks(limit),
@@ -23,6 +30,22 @@ export async function getChartsData(limit = 20) {
             '',
     }));
 
+    if (!resolveImages) {
+        return {
+            artists: mappedArtists.map((a) => ({
+                name: a.name,
+                playcount: a.playcount,
+                imageUrl: null as string | null,
+            })),
+            tracks: mappedTracks.map((t) => ({
+                name: t.name,
+                playcount: t.playcount,
+                imageUrl: null as string | null,
+                artist: t.artist,
+            })),
+        };
+    }
+
     const [enrichedArtists, enrichedTracks] = await Promise.all([
         enrichWithImages(mappedArtists, 'artist'),
         enrichWithImages(mappedTracks, 'track', (t) => t.artist),
@@ -42,3 +65,12 @@ export async function getChartsData(limit = 20) {
         })),
     };
 }
+
+export const getChartsData = cacheAggregator(
+    'charts',
+    fetchChartsData,
+    {
+        revalidate: 3600,
+        tags: () => ['lastfm:charts:global'],
+    }
+);

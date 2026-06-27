@@ -1,10 +1,11 @@
 import { subDays, getUnixTime } from 'date-fns';
 import { getImageUrl } from '@/lib/images';
 import { CollageAlbum, CollageDays, parseDays, parseGridSize } from '@/lib/semaninha-params';
-import { resolveAlbumCover, resolveCoversBatch } from '../images';
+import { getCachedAlbumCover, resolveCoversBatch } from '../images';
 import { fetchAllRecentTracks } from '../client';
 import { getTopAlbums } from '../user';
 import { processRecentTracks } from './recent-tracks';
+import { cacheAggregator } from '../server-cache';
 
 export type { CollageAlbum, CollageDays };
 export { parseDays, parseGridSize };
@@ -16,7 +17,7 @@ export interface CollageOptions {
     resolveCovers?: boolean;
 }
 
-export async function getCollageAlbums(opts: CollageOptions): Promise<CollageAlbum[]> {
+async function fetchCollageAlbums(opts: CollageOptions): Promise<CollageAlbum[]> {
     let albums: CollageAlbum[];
 
     if (opts.days === 7) {
@@ -29,7 +30,7 @@ export async function getCollageAlbums(opts: CollageOptions): Promise<CollageAlb
                     ?? (a.artist as { '#text'?: string })?.['#text']
                     ?? '',
             playcount: parseInt(a.playcount ?? '0', 10),
-            imageUrl: getImageUrl(a.image),
+            imageUrl: getImageUrl(a.image, 'large'),
         }));
     } else {
         const from = getUnixTime(subDays(new Date(), opts.days)).toString();
@@ -43,7 +44,7 @@ export async function getCollageAlbums(opts: CollageOptions): Promise<CollageAlb
                 name: a.name,
                 artist: a.artist,
                 playcount: a.count,
-                imageUrl: getImageUrl(a.image),
+                imageUrl: getImageUrl(a.image, 'large'),
             }));
     }
 
@@ -51,5 +52,17 @@ export async function getCollageAlbums(opts: CollageOptions): Promise<CollageAlb
         return albums;
     }
 
-    return resolveCoversBatch(albums, (album) => resolveAlbumCover(album.artist, album.name));
+    return resolveCoversBatch(albums, (album) => getCachedAlbumCover(album.artist, album.name));
 }
+
+export const getCollageAlbums = cacheAggregator(
+    'collage',
+    fetchCollageAlbums,
+    {
+        revalidate: 300,
+        tags: (opts) => [
+            `lastfm:user:${opts.username}:collage`,
+            `lastfm:user:${opts.username}:collage:${opts.days}:${opts.count}`,
+        ],
+    }
+);

@@ -2,7 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { CoverImage } from '@/components/CoverImage';
+import { LazyCoverImage } from '@/components/LazyCoverImage';
 import { getIntlLocale } from '@/lib/i18n/format';
 import { truncateText } from '@/lib/images';
 
@@ -11,6 +11,8 @@ export interface RankedItem {
     playcount?: string;
     image?: string | null;
     sub?: string;
+    lazyType?: 'artist' | 'album' | 'track';
+    lazyArtist?: string;
 }
 
 interface RankedListProps {
@@ -36,10 +38,13 @@ export function RankedList({ items, accent = '#ef4444', linkPrefix, startIndex =
                         >
                             {rank}
                         </span>
-                        <CoverImage
+                        <LazyCoverImage
                             src={item.image}
                             alt={item.name}
                             className="w-10 h-10 rounded-md shrink-0 ring-1 ring-white/5"
+                            lazyType={item.lazyType ?? (linkPrefix ? 'artist' : item.sub ? 'album' : undefined)}
+                            lazyArtist={item.lazyArtist ?? item.sub}
+                            lazyName={item.name}
                         />
                         <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium truncate group-hover:text-white transition-colors">

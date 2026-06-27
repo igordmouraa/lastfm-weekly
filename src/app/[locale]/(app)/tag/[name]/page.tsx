@@ -1,11 +1,12 @@
 import { getTagTopArtists, getTagTopAlbums } from '@/lib/lastfm/chart';
-import { enrichWithImages } from '@/lib/lastfm/resolve-image';
 import { TagView } from '@/components/discovery/TagView';
 import { PageContainer } from '@/components/shell/PageContainer';
 import { formatTagName } from '@/lib/tags';
 import { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
+
+export const revalidate = 3600;
 
 interface PageProps {
     params: Promise<{ locale: string; name: string }>;
@@ -27,11 +28,15 @@ export default async function TagPage({ params }: PageProps) {
         getTagTopAlbums(tag, 12),
     ]);
 
-    const mappedArtists = artists.map((a) => ({ name: a.name, playcount: a.playcount, image: a.image }));
+    const mappedArtists = artists.map((a) => ({
+        name: a.name,
+        playcount: a.playcount,
+        imageUrl: null as string | null,
+    }));
     const mappedAlbums = albums.map((a) => ({
         name: a.name,
         playcount: a.playcount,
-        image: a.image,
+        imageUrl: null as string | null,
         artist:
             typeof a.artist === 'string'
                 ? a.artist
@@ -40,27 +45,9 @@ export default async function TagPage({ params }: PageProps) {
                     ?? '',
     }));
 
-    const [enrichedArtists, enrichedAlbums] = await Promise.all([
-        enrichWithImages(mappedArtists, 'artist'),
-        enrichWithImages(mappedAlbums, 'album', (a) => a.artist),
-    ]);
-
     return (
         <PageContainer>
-            <TagView
-                tag={tag}
-                artists={enrichedArtists.map((a) => ({
-                    name: a.name,
-                    playcount: a.playcount,
-                    imageUrl: a.imageUrl,
-                }))}
-                albums={enrichedAlbums.map((a, i) => ({
-                    name: a.name,
-                    playcount: a.playcount,
-                    imageUrl: a.imageUrl,
-                    artist: mappedAlbums[i]?.artist ?? '',
-                }))}
-            />
+            <TagView tag={tag} artists={mappedArtists} albums={mappedAlbums} />
         </PageContainer>
     );
 }

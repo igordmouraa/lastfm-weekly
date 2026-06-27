@@ -1,11 +1,13 @@
 import { getCollageAlbums } from '@/lib/lastfm/aggregators/collage';
-import { parseDays, parseGridSize } from '@/lib/semaninha-params';
+import { parseDays, parseGridSize, isHeavyGridLayout } from '@/lib/semaninha-params';
 import { SemaninhaClient } from '@/components/semaninha/SemaninhaClient';
 import { PageContainer } from '@/components/shell/PageContainer';
 import { CollageGap, CollageLabelMode, CollageRadius } from '@/components/semaninha/CollageControls';
 import { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
+
+export const revalidate = 300;
 
 interface PageProps {
     params: Promise<{ locale: string; username: string }>;
@@ -53,9 +55,15 @@ export default async function SemaninhaPage({ params, searchParams }: PageProps)
     const radius = parseRadius(sp.radius);
     const showBorder = sp.border !== '0';
     const labelMode = parseLabelMode(sp.labelMode);
-    const { count } = parseGridSize(grid);
+    const layout = parseGridSize(grid);
+    const heavy = days === 30 || isHeavyGridLayout(layout);
 
-    const albums = await getCollageAlbums({ username, days, count, resolveCovers: true });
+    const albums = await getCollageAlbums({
+        username,
+        days,
+        count: layout.count,
+        resolveCovers: !heavy,
+    });
 
     return (
         <PageContainer title={t('heading')} description={t('description')}>

@@ -2,19 +2,17 @@
 
 import { formatDistanceToNow } from 'date-fns';
 import { useLocale, useTranslations } from 'next-intl';
-import { CoverImage } from '@/components/CoverImage';
-import { NowPlayingData } from '@/lib/lastfm/aggregators/now-playing';
+import { LazyCoverImage } from '@/components/LazyCoverImage';
 import { useNowPlaying } from '@/hooks/useNowPlaying';
 import { getDateFnsLocale } from '@/lib/i18n/format';
 import { cn } from '@/lib/utils';
 
 interface NowPlayingCardProps {
     username: string;
-    initial: NowPlayingData;
 }
 
-export function NowPlayingCard({ username, initial }: NowPlayingCardProps) {
-    const data = useNowPlaying(username, initial);
+export function NowPlayingCard({ username }: NowPlayingCardProps) {
+    const data = useNowPlaying(username);
     const t = useTranslations('common');
     const locale = useLocale();
     const dateLocale = getDateFnsLocale(locale);
@@ -34,7 +32,15 @@ export function NowPlayingCard({ username, initial }: NowPlayingCardProps) {
                         {t('live')}
                     </span>
                 )}
-                <CoverImage src={track?.imageUrl} alt={track?.name ?? t('unknownInitial')} className="w-16 h-16 rounded-lg" />
+                <LazyCoverImage
+                    src={track?.imageUrl}
+                    alt={track?.name ?? t('unknownInitial')}
+                    className="w-16 h-16 rounded-lg"
+                    size={64}
+                    lazyType={track ? 'track' : undefined}
+                    lazyArtist={track?.artist}
+                    lazyName={track?.name}
+                />
             </div>
             <div className="min-w-0 flex-1">
                 <p className="text-[10px] uppercase tracking-widest text-neutral-500 mb-1">

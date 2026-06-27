@@ -8,6 +8,8 @@ import { LastFmError } from '@/lib/lastfm/client';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
 
+export const revalidate = 300;
+
 interface PageProps {
     params: Promise<{ locale: string; username: string }>;
 }
@@ -29,7 +31,7 @@ export default async function ProfilePage({ params }: PageProps) {
     let weekly;
     try {
         data = await getDashboardData(username, '7day');
-        weekly = await buildDashboardWeeklyPreview(data);
+        weekly = buildDashboardWeeklyPreview(data);
     } catch (err) {
         if (err instanceof LastFmError) notFound();
         throw err;

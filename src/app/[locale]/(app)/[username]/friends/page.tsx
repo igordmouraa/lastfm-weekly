@@ -5,6 +5,8 @@ import { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
 
+export const revalidate = 3600;
+
 interface PageProps {
     params: Promise<{ locale: string; username: string }>;
 }

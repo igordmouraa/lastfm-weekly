@@ -23,6 +23,7 @@ export function TagView({ tag, artists, albums }: TagViewProps) {
         name: a.name,
         playcount: a.playcount,
         image: a.imageUrl,
+        lazyType: 'artist' as const,
     }));
 
     const albumItems = albums.map((a) => ({
@@ -30,6 +31,8 @@ export function TagView({ tag, artists, albums }: TagViewProps) {
         playcount: a.playcount,
         image: a.imageUrl,
         sub: a.artist,
+        lazyType: 'album' as const,
+        lazyArtist: a.artist,
     }));
 
     return (

@@ -1,48 +1,116 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useSyncExternalStore } from 'react';
 import { NowPlayingData } from '@/lib/lastfm/aggregators/now-playing';
 
 const POLL_INTERVAL = 45_000;
 
-export function useNowPlaying(username: string | null, initial: NowPlayingData | null) {
-    const [data, setData] = useState<NowPlayingData | null>(initial);
+type Subscriber = () => void;
 
-    const fetchNowPlaying = useCallback(async () => {
-        if (!username) return;
-        try {
-            const res = await fetch(`/api/lastfm/user/${encodeURIComponent(username)}/now-playing`);
-            if (res.ok) {
-                const json = await res.json();
-                setData({
-                    ...json,
-                    lastPlayedAt: json.lastPlayedAt ? new Date(json.lastPlayedAt) : null,
-                });
-            }
-        } catch {
-            /* keep current */
-        }
-    }, [username]);
+interface UsernameEntry {
+    data: NowPlayingData | null;
+    subscribers: Set<Subscriber>;
+    intervalId: ReturnType<typeof setInterval> | null;
+    refCount: number;
+    fetching: boolean;
+}
 
-    useEffect(() => {
-        setData(initial);
-    }, [initial]);
+const store = new Map<string, UsernameEntry>();
 
-    useEffect(() => {
-        if (!username) return;
-        fetchNowPlaying();
-    }, [username, fetchNowPlaying]);
+function parseNowPlaying(json: Record<string, unknown>): NowPlayingData {
+    return {
+        isLive: Boolean(json.isLive),
+        track: json.track as NowPlayingData['track'],
+        lastPlayedAt: json.lastPlayedAt ? new Date(json.lastPlayedAt as string) : null,
+    };
+}
 
-    useEffect(() => {
-        if (!username) return;
+async function fetchNowPlaying(username: string): Promise<NowPlayingData | null> {
+    const res = await fetch(`/api/lastfm/user/${encodeURIComponent(username)}/now-playing`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return parseNowPlaying(json);
+}
 
-        const tick = () => {
-            if (document.visibilityState === 'visible') fetchNowPlaying();
+function getOrCreateEntry(username: string): UsernameEntry {
+    let entry = store.get(username);
+    if (!entry) {
+        entry = {
+            data: null,
+            subscribers: new Set(),
+            intervalId: null,
+            refCount: 0,
+            fetching: false,
         };
+        store.set(username, entry);
+    }
+    return entry;
+}
 
-        const id = setInterval(tick, POLL_INTERVAL);
-        return () => clearInterval(id);
-    }, [username, fetchNowPlaying]);
+function notify(entry: UsernameEntry) {
+    entry.subscribers.forEach((fn) => fn());
+}
 
-    return data;
+async function refreshEntry(username: string) {
+    const entry = getOrCreateEntry(username);
+    if (entry.fetching) return;
+    entry.fetching = true;
+    try {
+        const data = await fetchNowPlaying(username);
+        entry.data = data;
+        notify(entry);
+    } finally {
+        entry.fetching = false;
+    }
+}
+
+function startPolling(username: string) {
+    const entry = getOrCreateEntry(username);
+    if (entry.intervalId) return;
+
+    void refreshEntry(username);
+
+    entry.intervalId = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            void refreshEntry(username);
+        }
+    }, POLL_INTERVAL);
+}
+
+function stopPolling(username: string) {
+    const entry = store.get(username);
+    if (!entry || entry.refCount > 0) return;
+    if (entry.intervalId) {
+        clearInterval(entry.intervalId);
+        entry.intervalId = null;
+    }
+    store.delete(username);
+}
+
+function subscribe(username: string | null, onChange: Subscriber): () => void {
+    if (!username) return () => {};
+
+    const entry = getOrCreateEntry(username);
+    entry.refCount += 1;
+    entry.subscribers.add(onChange);
+    startPolling(username);
+
+    return () => {
+        entry.subscribers.delete(onChange);
+        entry.refCount -= 1;
+        stopPolling(username);
+    };
+}
+
+function getSnapshot(username: string | null): NowPlayingData | null {
+    if (!username) return null;
+    return store.get(username)?.data ?? null;
+}
+
+export function useNowPlaying(username: string | null) {
+    return useSyncExternalStore(
+        (onChange) => subscribe(username, onChange),
+        () => getSnapshot(username),
+        () => null
+    );
 }

@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import { fetchLastFm, asArray } from '../client';
-import { resolveEntityImage, getValidImageUrl } from '../resolve-image';
+import { getValidImageUrl } from '../resolve-image';
 import { RecentTracksResponse, LastFmTrack } from '@/types/lastfm';
 
 export interface NowPlayingData {
@@ -50,16 +50,6 @@ export const getNowPlaying = cache(async (username: string): Promise<NowPlayingD
         }
 
         const parsed = parseTrack(tracks[0]);
-
-        if (parsed.track && !parsed.track.imageUrl) {
-            parsed.track.imageUrl = await resolveEntityImage({
-                type: parsed.track.album ? 'album' : 'artist',
-                name: parsed.track.album ?? parsed.track.name,
-                artist: parsed.track.artist,
-                lastFmImages: tracks[0].image,
-            });
-        }
-
         return parsed;
     } catch {
         return { isLive: false, track: null, lastPlayedAt: null };

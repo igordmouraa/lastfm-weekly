@@ -1,7 +1,12 @@
 import { getArtistInfo, getArtistSimilar, getArtistTopTags } from '../chart';
 import { enrichWithImages, resolveEntityImage } from '../resolve-image';
 
-export async function getArtistProfile(slug: string) {
+export interface ArtistProfileOptions {
+    resolveImages?: boolean;
+}
+
+export async function getArtistProfile(slug: string, options: ArtistProfileOptions = {}) {
+    const resolveImages = options.resolveImages !== false;
     const name = decodeURIComponent(slug);
 
     const [artist, similar, tags] = await Promise.all([
@@ -10,6 +15,22 @@ export async function getArtistProfile(slug: string) {
         getArtistTopTags(name),
     ]);
 
+    const bio = artist.bio?.summary?.replace(/<[^>]+>/g, '').trim() ?? '';
+
+    if (!resolveImages) {
+        return {
+            artist,
+            heroImage: null as string | null,
+            bio,
+            tags: tags.filter((t) => t.name).slice(0, 10),
+            similar: similar.map((a) => ({
+                name: a.name,
+                playcount: a.listeners,
+                imageUrl: null as string | null,
+            })),
+        };
+    }
+
     const [heroImage, similarEnriched] = await Promise.all([
         resolveEntityImage({ type: 'artist', name: artist.name, lastFmImages: artist.image }),
         enrichWithImages(
@@ -17,8 +38,6 @@ export async function getArtistProfile(slug: string) {
             'artist'
         ),
     ]);
-
-    const bio = artist.bio?.summary?.replace(/<[^>]+>/g, '').trim() ?? '';
 
     return {
         artist,

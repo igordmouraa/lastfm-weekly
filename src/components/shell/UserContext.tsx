@@ -1,60 +1,23 @@
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
-import { NowPlayingData } from '@/lib/lastfm/aggregators/now-playing';
+import { useCurrentUser as useSessionCurrentUser } from './SessionProvider';
+import { useViewedUser as usePathViewedUser } from './AppShellWithUser';
 
-interface UserContextValue {
-    /** Logged-in account (JWT session cookie) */
-    currentUser: string | null;
-    /** Profile being viewed from URL, if any */
-    viewedUser: string | null;
-    nowPlaying: NowPlayingData | null;
-}
-
-const UserContext = createContext<UserContextValue>({
-    currentUser: null,
-    viewedUser: null,
-    nowPlaying: null,
-});
-
-export function UserProvider({
-    currentUser,
-    viewedUser,
-    nowPlaying,
-    children,
-}: {
-    currentUser: string | null;
-    viewedUser?: string | null;
-    nowPlaying?: NowPlayingData | null;
-    children: ReactNode;
-}) {
-    return (
-        <UserContext.Provider
-            value={{
-                currentUser,
-                viewedUser: viewedUser ?? null,
-                nowPlaying: nowPlaying ?? null,
-            }}
-        >
-            {children}
-        </UserContext.Provider>
-    );
-}
-
+/** @deprecated Prefer useCurrentUser / useViewedUser directly */
 export function useUserContext() {
-    return useContext(UserContext);
+    return {
+        currentUser: useSessionCurrentUser(),
+        viewedUser: usePathViewedUser(),
+        nowPlaying: null,
+    };
 }
 
-export function useCurrentUser() {
-    return useContext(UserContext).currentUser;
-}
-
-export function useViewedUser() {
-    return useContext(UserContext).viewedUser;
-}
+export { useCurrentUser, useSessionStatus } from './SessionProvider';
+export { useViewedUser } from './AppShellWithUser';
 
 /** @deprecated Use useCurrentUser or useViewedUser */
 export function useLegacyUsername() {
-    const { currentUser, viewedUser } = useContext(UserContext);
+    const currentUser = useSessionCurrentUser();
+    const viewedUser = usePathViewedUser();
     return currentUser ?? viewedUser;
 }

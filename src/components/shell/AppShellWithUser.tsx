@@ -1,23 +1,33 @@
 'use client';
 
-import { usePathname } from '@/i18n/navigation';
 import { ReactNode, useMemo } from 'react';
-import { UserProvider } from './UserContext';
+import { usePathname } from '@/i18n/navigation';
 import { AppShell } from './AppShell';
+import { SessionProvider } from './SessionProvider';
 import { extractViewedUserFromPath } from '@/lib/session/path';
+import { ViewedUserProvider, useViewedUser } from './ViewedUserContext';
+
+export { useViewedUser };
 
 interface AppShellWithUserProps {
-    currentUser: string | null;
     children: ReactNode;
 }
 
-export function AppShellWithUser({ currentUser, children }: AppShellWithUserProps) {
+function AppShellInner({ children }: AppShellWithUserProps) {
     const pathname = usePathname();
     const viewedUser = useMemo(() => extractViewedUserFromPath(pathname), [pathname]);
 
     return (
-        <UserProvider currentUser={currentUser} viewedUser={viewedUser}>
+        <ViewedUserProvider viewedUser={viewedUser}>
             <AppShell>{children}</AppShell>
-        </UserProvider>
+        </ViewedUserProvider>
+    );
+}
+
+export function AppShellWithUser({ children }: AppShellWithUserProps) {
+    return (
+        <SessionProvider>
+            <AppShellInner>{children}</AppShellInner>
+        </SessionProvider>
     );
 }

@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 interface PageProps {
     params: Promise<{ locale: string }>;
@@ -24,7 +24,7 @@ export default async function ChartsPage({ params }: PageProps) {
     const { locale } = await params;
     setRequestLocale(locale as Locale);
 
-    const data = await getChartsData(20);
+    const data = await getChartsData(20, { resolveImages: false });
 
     return (
         <PageContainer fullWidth>

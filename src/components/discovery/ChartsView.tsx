@@ -24,6 +24,7 @@ export function ChartsView({ artists, tracks }: ChartsViewProps) {
         name: a.name,
         playcount: a.playcount,
         image: a.imageUrl,
+        lazyType: 'artist' as const,
     }));
 
     const trackItems = tracks.map((track) => ({
@@ -31,6 +32,8 @@ export function ChartsView({ artists, tracks }: ChartsViewProps) {
         playcount: track.playcount,
         image: track.imageUrl,
         sub: track.artist,
+        lazyType: 'track' as const,
+        lazyArtist: track.artist,
     }));
 
     return (

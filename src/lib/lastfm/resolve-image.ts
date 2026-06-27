@@ -1,6 +1,6 @@
 import { LastFmImage } from '@/types/lastfm';
 import { getImageUrl, isLastFmPlaceholder } from '@/lib/images';
-import { resolveArtistCover, resolveAlbumCover, resolveTrackCover } from './images';
+import { getCachedAlbumCover, getCachedArtistCover, getCachedTrackCover } from './images';
 import { getArtistInfo, getTrackInfo } from './chart';
 
 export function isLastFmPlaceholderUrl(url: string | null | undefined): boolean {
@@ -8,7 +8,7 @@ export function isLastFmPlaceholderUrl(url: string | null | undefined): boolean 
 }
 
 export function getValidImageUrl(images: LastFmImage[] | undefined): string | null {
-    const url = getImageUrl(images);
+    const url = getImageUrl(images, 'large');
     if (!url || isLastFmPlaceholder(url)) return null;
     return url;
 }
@@ -46,17 +46,17 @@ async function resolveTrackImage(params: ResolveEntityImageParams): Promise<stri
     }
 
     if (album) {
-        const albumCover = await resolveAlbumCover(artist, album);
+        const albumCover = await getCachedAlbumCover(artist, album);
         if (albumCover) return albumCover;
     }
 
-    const trackCover = await resolveTrackCover(artist, params.name);
+    const trackCover = await getCachedTrackCover(artist, params.name);
     if (trackCover) return trackCover;
 
     const fromLastFm = getValidImageUrl(params.lastFmImages);
     if (fromLastFm) return fromLastFm;
 
-    return resolveArtistCover(artist);
+    return getCachedArtistCover(artist);
 }
 
 export async function resolveEntityImage(params: ResolveEntityImageParams): Promise<string | null> {
@@ -75,11 +75,11 @@ export async function resolveEntityImage(params: ResolveEntityImageParams): Prom
         } catch {
             // segue para fallbacks externos
         }
-        return resolveArtistCover(params.name);
+        return getCachedArtistCover(params.name);
     }
 
     if (params.type === 'album' && params.artist) {
-        return resolveAlbumCover(params.artist, params.name);
+        return getCachedAlbumCover(params.artist, params.name);
     }
 
     return null;

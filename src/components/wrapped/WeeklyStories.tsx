@@ -2,7 +2,7 @@
 
 import { forwardRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { CoverImage } from '@/components/CoverImage';
+import { LazyCoverImage } from '@/components/LazyCoverImage';
 import { WeeklyData, LastFmTrack, LastFmArtist } from '@/types/lastfm';
 import { getImageUrl, truncateText } from '@/lib/images';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
 
             <div className="z-10 mt-2 mb-4">
                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] font-bold text-red-500/90 tracking-[0.18em] uppercase">
+                    <span className="text-[10px] font-bold text-red-400 tracking-[0.18em] uppercase">
                         {t('period')}
                     </span>
                     <LastFmLogo />
@@ -64,20 +64,25 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
 
             <div className="grid grid-cols-2 gap-x-3 z-10 flex-1 min-h-0 py-2">
                 <div className="flex flex-col min-h-0 min-w-0">
-                    <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
+                    <h2 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
                         {t('topTracks')}
-                    </h3>
+                    </h2>
                     <ul className="flex flex-col justify-between flex-1 min-h-0 gap-1">
                         {tracks.slice(0, 5).map((track, i) => {
                             const imageUrl = (track as LastFmTrack & { imageUrl?: string | null }).imageUrl;
+                            const artistName = track.artist?.name ?? '';
                             return (
                             <li key={`${track.name}-${i}`} className="flex items-center gap-3 group">
                                 <span className="text-sm font-bold text-red-500 min-w-3">{i + 1}</span>
-                                <CoverImage
-                                    src={imageUrl ?? getImageUrl(track.image)}
+                                <LazyCoverImage
+                                    src={imageUrl ?? getImageUrl(track.image, 'large')}
                                     alt={track.name}
                                     className="w-9 h-9 rounded shrink-0"
+                                    size={36}
                                     forceProxy={!isPreview}
+                                    lazyType="track"
+                                    lazyArtist={artistName}
+                                    lazyName={track.name}
                                 />
                                 <div className="flex flex-col min-w-0 justify-center flex-1">
                                     <span className="font-bold text-[11px] leading-tight truncate">{truncateText(track.name, 25)}</span>
@@ -90,23 +95,24 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
                 </div>
 
                 <div className="flex flex-col min-h-0 min-w-0">
-                    <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
+                    <h2 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border-b border-white/10 pb-2 mb-3">
                         {t('topArtists')}
-                    </h3>
+                    </h2>
                     <ul className="flex flex-col justify-between flex-1 min-h-0 gap-1">
                         {artists.slice(0, 5).map((artist: LastFmArtist, i: number) => {
                             const imageUrl = (artist as LastFmArtist & { imageUrl?: string | null }).imageUrl;
                             return (
                             <li key={`${artist.name}-${i}`} className="flex items-center gap-2 min-h-9 min-w-0">
                                 <span className="text-sm font-bold text-red-500 w-3 shrink-0">{i + 1}</span>
-                                {!isPreview && (
-                                    <CoverImage
-                                        src={imageUrl ?? getImageUrl(artist.image)}
-                                        alt={artist.name}
-                                        className="w-8 h-8 rounded-full shrink-0 ring-1 ring-white/10"
-                                        forceProxy
-                                    />
-                                )}
+                                <LazyCoverImage
+                                    src={imageUrl ?? getImageUrl(artist.image, 'large')}
+                                    alt={artist.name}
+                                    className="w-8 h-8 rounded-full shrink-0 ring-1 ring-white/10"
+                                    size={32}
+                                    forceProxy={!isPreview}
+                                    lazyType="artist"
+                                    lazyName={artist.name}
+                                />
                                 <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
                                     <span className="font-bold text-[11px] leading-tight truncate">{truncateText(artist.name, 20)}</span>
                                     <span className="text-[10px] text-neutral-400 truncate">
@@ -123,14 +129,14 @@ export const WeeklyStories = forwardRef<HTMLDivElement, WeeklyStoriesProps>(({ d
             <div className="z-10 pt-4 border-t border-white/10 mt-auto">
                 <div className="flex justify-between items-start">
                     <div>
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">{t('timeEstimated')}</p>
+                        <p className="text-[10px] text-neutral-400 uppercase tracking-wider mb-1">{t('timeEstimated')}</p>
                         <p className="text-3xl font-black text-white tracking-tighter leading-none">
                             {(totalScrobbles * 3.5).toFixed(0)}{' '}
                             <span className="text-sm font-bold text-red-500">{tc('minutesShort')}</span>
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">{t('scrobbles')}</p>
+                        <p className="text-[10px] text-neutral-400 uppercase tracking-wider mb-1">{t('scrobbles')}</p>
                         <p className="text-xl font-bold text-white">{totalScrobbles.toLocaleString()}</p>
                     </div>
                 </div>

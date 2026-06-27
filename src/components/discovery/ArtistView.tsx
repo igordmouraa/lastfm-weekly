@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/navigation';
-import { CoverImage } from '@/components/CoverImage';
+import { LazyCoverImage } from '@/components/LazyCoverImage';
 import { RankedList } from '@/components/discovery/RankedList';
 import { LastFmTag } from '@/types/lastfm';
 import { formatTagName } from '@/lib/tags';
@@ -30,6 +30,7 @@ export function ArtistView({ name, heroImage, listeners, playcount, bio, tags, s
         name: a.name,
         playcount: a.playcount,
         image: a.imageUrl,
+        lazyType: 'artist' as const,
     }));
 
     const listenerCount = parseInt(listeners, 10);
@@ -44,10 +45,12 @@ export function ArtistView({ name, heroImage, listeners, playcount, bio, tags, s
         >
             <motion.header variants={fadeUp} className="flex flex-col sm:flex-row gap-6 sm:gap-8">
                 <div className="relative shrink-0">
-                    <CoverImage
+                    <LazyCoverImage
                         src={heroImage}
                         alt={name}
                         className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl ring-1 ring-white/10 shadow-2xl shadow-black/50"
+                        lazyType="artist"
+                        lazyName={name}
                     />
                     <div className="absolute -inset-4 bg-red-600/10 rounded-3xl blur-2xl -z-10" />
                 </div>
