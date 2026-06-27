@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname } from '@/i18n/navigation';
 import {
     LayoutDashboard,
     Grid3x3,
@@ -11,17 +11,19 @@ import {
     ArrowLeftRight,
     TrendingUp,
     Hash,
-    ChevronLeft,
-    ChevronRight,
     Disc3,
+    PanelLeftClose,
+    PanelLeftOpen,
     X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useShell } from './AppShell';
-import { useUserContext } from './UserContext';
+import { useCurrentUser } from './UserContext';
+import { SidebarUserPanel } from './SidebarUserPanel';
 import { NowPlayingWidget } from './NowPlayingWidget';
 
 interface NavItem {
+    id: string;
     label: string;
     href: string;
     icon: React.ComponentType<{ className?: string }>;
@@ -29,44 +31,50 @@ interface NavItem {
 }
 
 interface NavGroup {
+    id: string;
     title: string;
     items: NavItem[];
 }
 
-function buildNavGroups(username: string | null): NavGroup[] {
+function buildNavGroups(username: string | null, t: ReturnType<typeof useTranslations<'nav'>>): NavGroup[] {
     const base = username ? `/${encodeURIComponent(username)}` : null;
 
     return [
         {
-            title: 'Início',
+            id: 'home',
+            title: t('groups.home'),
             items: [
-                { label: 'Dashboard', href: base ?? '/', icon: LayoutDashboard, requiresUser: true },
+                { id: 'dashboard', label: t('items.dashboard'), href: base ?? '/', icon: LayoutDashboard, requiresUser: true },
             ],
         },
         {
-            title: 'Resumos',
+            id: 'summaries',
+            title: t('groups.summaries'),
             items: [
-                { label: 'Grade semanal', href: base ? `${base}/semaninha` : '/', icon: Grid3x3, requiresUser: true },
-                { label: 'Cápsula', href: base ? `${base}/week` : '/', icon: RectangleVertical, requiresUser: true },
-                { label: 'Wrapped', href: base ? `${base}/wrapped` : '/', icon: CalendarRange, requiresUser: true },
+                { id: 'semaninha', label: t('items.weeklyGrid'), href: base ? `${base}/semaninha` : '/', icon: Grid3x3, requiresUser: true },
+                { id: 'week', label: t('items.capsule'), href: base ? `${base}/week` : '/', icon: RectangleVertical, requiresUser: true },
+                { id: 'wrapped', label: t('items.wrapped'), href: base ? `${base}/wrapped` : '/', icon: CalendarRange, requiresUser: true },
             ],
         },
         {
-            title: 'Social',
+            id: 'social',
+            title: t('groups.social'),
             items: [
-                { label: 'Amigos', href: base ? `${base}/friends` : '/', icon: Users, requiresUser: true },
+                { id: 'friends', label: t('items.friends'), href: base ? `${base}/friends` : '/', icon: Users, requiresUser: true },
                 {
-                    label: 'Comparar',
+                    id: 'compare',
+                    label: t('items.compare'),
                     href: username ? `/compare?user1=${encodeURIComponent(username)}` : '/compare',
                     icon: ArrowLeftRight,
                 },
             ],
         },
         {
-            title: 'Explorar',
+            id: 'explore',
+            title: t('groups.explore'),
             items: [
-                { label: 'Charts globais', href: '/charts', icon: TrendingUp },
-                { label: 'Tags', href: '/tags', icon: Hash },
+                { id: 'charts', label: t('items.globalCharts'), href: '/charts', icon: TrendingUp },
+                { id: 'tags', label: t('items.tags'), href: '/tags', icon: Hash },
             ],
         },
     ];
@@ -75,13 +83,14 @@ function buildNavGroups(username: string | null): NavGroup[] {
 export function SidebarNav() {
     const pathname = usePathname();
     const { collapsed, toggleCollapsed, setMobileOpen, mobileOpen } = useShell();
-    const { username } = useUserContext();
-    const groups = buildNavGroups(username);
+    const currentUser = useCurrentUser();
+    const t = useTranslations('nav');
+    const groups = buildNavGroups(currentUser, t);
 
     const isActive = (href: string) => {
         if (href === '/' || !href.startsWith('/')) return false;
         const path = href.split('?')[0];
-        if (path === `/${username}` || path === `/${encodeURIComponent(username ?? '')}`) {
+        if (path === `/${currentUser}` || path === `/${encodeURIComponent(currentUser ?? '')}`) {
             return pathname === path || pathname === `${path}/`;
         }
         if (path.endsWith('/wrapped')) {
@@ -110,49 +119,47 @@ export function SidebarNav() {
 
     return (
         <>
-            <div className="p-4 border-b border-white/8 space-y-3">
-                <div className={cn('flex items-center', collapsed ? 'justify-center' : 'justify-between')}>
-                    <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setMobileOpen(false)}>
-                        <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
+            <div className="p-4 border-b border-white/8">
+                <div className={cn('flex items-center gap-2', collapsed ? 'flex-col' : 'justify-between')}>
+                    <div className="flex items-center gap-2 shrink-0 min-w-0 select-none">
+                        <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shrink-0">
                             <Disc3 className="w-4 h-4" />
                         </div>
                         {!collapsed && (
-                            <span className="font-display font-bold text-sm tracking-tight">Weekster Hub</span>
+                            <span className="font-display font-bold text-sm tracking-tight truncate">{t('brand')}</span>
                         )}
-                    </Link>
-                    {mobileOpen && !collapsed && (
+                    </div>
+
+                    <div className={cn('flex items-center gap-1', collapsed ? 'flex-col' : 'shrink-0')}>
+                        {mobileOpen && !collapsed && (
+                            <button
+                                type="button"
+                                onClick={() => setMobileOpen(false)}
+                                className="lg:hidden p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5"
+                                aria-label={t('aria.closeMenu')}
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                         <button
                             type="button"
-                            onClick={() => setMobileOpen(false)}
-                            className="lg:hidden p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5"
-                            aria-label="Fechar menu"
+                            onClick={toggleCollapsed}
+                            className="hidden lg:flex p-2 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5 transition-colors"
+                            aria-label={collapsed ? t('aria.expandSidebar') : t('aria.collapseSidebar')}
                         >
-                            <X className="w-4 h-4" />
+                            {collapsed ? (
+                                <PanelLeftOpen className="w-4 h-4" />
+                            ) : (
+                                <PanelLeftClose className="w-4 h-4" />
+                            )}
                         </button>
-                    )}
+                    </div>
                 </div>
-
-                <button
-                    type="button"
-                    onClick={toggleCollapsed}
-                    className={cn(
-                        'hidden lg:flex items-center gap-2 w-full p-2 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5 transition-colors text-xs',
-                        collapsed && 'justify-center'
-                    )}
-                    aria-label={collapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
-                >
-                    {collapsed ? <ChevronRight className="w-4 h-4" /> : (
-                        <>
-                            <ChevronLeft className="w-4 h-4" />
-                            <span>Recolher</span>
-                        </>
-                    )}
-                </button>
             </div>
 
             <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
                 {groups.map((group) => (
-                    <div key={group.title}>
+                    <div key={group.id}>
                         {!collapsed && (
                             <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-600">
                                 {group.title}
@@ -161,11 +168,11 @@ export function SidebarNav() {
                         <ul className="space-y-0.5">
                             {group.items.map((item) => {
                                 const Icon = item.icon;
-                                const disabled = item.requiresUser && !username;
+                                const disabled = item.requiresUser && !currentUser;
                                 const active = !disabled && isActive(item.href);
 
                                 return (
-                                    <li key={`${group.title}-${item.label}`}>
+                                    <li key={`${group.id}-${item.id}`}>
                                         <Link
                                             href={disabled ? '/' : item.href}
                                             onClick={() => setMobileOpen(false)}
@@ -190,19 +197,22 @@ export function SidebarNav() {
                 ))}
             </nav>
 
-            {username && <NowPlayingWidget collapsed={collapsed} />}
+            {currentUser && <NowPlayingWidget collapsed={collapsed} />}
+
+            <SidebarUserPanel key={currentUser ?? 'guest'} collapsed={collapsed} />
         </>
     );
 }
 
 export function MobileMenuButton() {
     const { setMobileOpen } = useShell();
+    const t = useTranslations('nav');
     return (
         <button
             type="button"
             onClick={() => setMobileOpen(true)}
             className="lg:hidden p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5"
-            aria-label="Abrir menu"
+            aria-label={t('aria.openMenu')}
         >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />

@@ -1,8 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
+import { Link } from '@/i18n/navigation';
 import { LastFmFriend } from '@/types/lastfm';
+import { useCurrentUser } from '@/components/shell/UserContext';
 import { CoverImage } from '@/components/CoverImage';
 import { getImageUrl } from '@/lib/images';
 import { GitCompare, ArrowUpRight, Users } from 'lucide-react';
@@ -18,6 +20,10 @@ const fadeUp = {
 };
 
 export function FriendsView({ username, friends }: FriendsViewProps) {
+    const t = useTranslations('social');
+    const currentUser = useCurrentUser();
+    const compareAs = currentUser ?? username;
+
     return (
         <motion.div
             initial="hidden"
@@ -27,20 +33,20 @@ export function FriendsView({ username, friends }: FriendsViewProps) {
         >
             <motion.header variants={fadeUp} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1">Social</p>
-                    <h1 className="text-2xl font-display font-bold tracking-tight">Amigos</h1>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1">{t('badge')}</p>
+                    <h1 className="text-2xl font-display font-bold tracking-tight">{t('friends.title')}</h1>
                     <p className="text-sm text-neutral-500 mt-1">
                         {friends.length > 0
-                            ? `${friends.length} amigo${friends.length !== 1 ? 's' : ''} público${friends.length !== 1 ? 's' : ''} de @${username}`
-                            : `Rede pública de @${username}`}
+                            ? t('friends.count', { count: friends.length, username })
+                            : t('friends.network', { username })}
                     </p>
                 </div>
                 <Link
-                    href={`/compare?user1=${encodeURIComponent(username)}`}
+                    href={`/compare?user1=${encodeURIComponent(compareAs)}`}
                     className="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-red-400 transition-colors"
                 >
                     <GitCompare className="w-4 h-4" />
-                    Comparar taste
+                    {t('friends.compareTaste')}
                     <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
             </motion.header>
@@ -48,15 +54,15 @@ export function FriendsView({ username, friends }: FriendsViewProps) {
             {friends.length === 0 ? (
                 <motion.div variants={fadeUp} className="py-16 text-center">
                     <Users className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
-                    <p className="text-neutral-500">Nenhum amigo público encontrado.</p>
-                    <p className="text-sm text-neutral-600 mt-1">A lista depende das configurações de privacidade no Last.fm.</p>
+                    <p className="text-neutral-500">{t('friends.empty')}</p>
+                    <p className="text-sm text-neutral-600 mt-1">{t('friends.privacyNote')}</p>
                 </motion.div>
             ) : (
                 <motion.ul variants={fadeUp} className="divide-y divide-white/[0.04]">
                     {friends.map((friend) => {
                         const avatar = getImageUrl(friend.image);
                         const profileHref = `/${encodeURIComponent(friend.name)}`;
-                        const compareHref = `/compare?user1=${encodeURIComponent(username)}&user2=${encodeURIComponent(friend.name)}`;
+                        const compareHref = `/compare?user1=${encodeURIComponent(compareAs)}&user2=${encodeURIComponent(friend.name)}`;
 
                         return (
                             <li key={friend.name}>
@@ -82,12 +88,12 @@ export function FriendsView({ username, friends }: FriendsViewProps) {
                                             className="hidden sm:inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-red-400 transition-colors"
                                         >
                                             <GitCompare className="w-3.5 h-3.5" />
-                                            Comparar
+                                            {t('friends.compare')}
                                         </Link>
                                         <Link
                                             href={profileHref}
                                             className="p-2 rounded-lg text-neutral-600 hover:text-white hover:bg-white/5 transition-colors"
-                                            aria-label={`Ver perfil de ${friend.name}`}
+                                            aria-label={t('friends.viewProfileAria', { name: friend.name })}
                                         >
                                             <ArrowUpRight className="w-4 h-4" />
                                         </Link>
