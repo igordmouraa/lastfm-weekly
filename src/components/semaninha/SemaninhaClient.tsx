@@ -4,13 +4,15 @@ import { useCallback, useRef, useState } from 'react';
 import {
     CollageAlbum,
     CollageDays,
+    isHeavyGridLayout,
     parseGridSize,
 } from '@/lib/semaninha-params';
 import { CollageGrid } from './CollageGrid';
 import { CollageControls, CollageGap, CollageLabelMode, CollageRadius } from './CollageControls';
 import { ExportPanel } from '@/hooks/useExportPng';
-import { getSemaninhaLoadingMessage, SemaninhaLoader } from './SemaninhaLoader';
+import { SemaninhaLoader } from './SemaninhaLoader';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface SemaninhaClientProps {
     username: string;
@@ -25,7 +27,8 @@ interface SemaninhaClientProps {
 }
 
 function isHeavySemaninhaLoad(days: number, grid: string): boolean {
-    return days === 30 || grid === '10x10';
+    const layout = parseGridSize(grid);
+    return days === 30 || isHeavyGridLayout(layout);
 }
 
 async function fetchCollageAlbums(username: string, days: CollageDays, count: number): Promise<CollageAlbum[]> {
@@ -34,6 +37,21 @@ async function fetchCollageAlbums(username: string, days: CollageDays, count: nu
     );
     if (!res.ok) throw new Error('fetch failed');
     return res.json();
+}
+
+function resolveLoadingMessage(
+    days: number,
+    grid: string,
+    t: ReturnType<typeof useTranslations<'semaninha.loading'>>
+): string {
+    const isLargeGrid = parseGridSize(grid).count >= 64;
+    const isLongPeriod = days === 30;
+
+    if (isLargeGrid && isLongPeriod) return t('grid10x30d');
+    if (isLargeGrid) return t('grid10x10');
+    if (isLongPeriod) return t('albums30d');
+    if (days === 15) return t('scanning15d');
+    return t('updating');
 }
 
 export function SemaninhaClient({
@@ -47,6 +65,7 @@ export function SemaninhaClient({
     showBorder: initialShowBorder,
     labelMode: initialLabelMode,
 }: SemaninhaClientProps) {
+    const tLoading = useTranslations('semaninha.loading');
     const [grid, setGrid] = useState(initialGrid);
     const [days, setDays] = useState<CollageDays>(initialDays);
     const [showLabels, setShowLabels] = useState(initialShowLabels);
@@ -61,7 +80,7 @@ export function SemaninhaClient({
     const albumCacheRef = useRef<Map<CollageDays, CollageAlbum[]>>(new Map([[initialDays, initialAlbums]]));
     const fetchGenRef = useRef(0);
 
-    const { size: gridSize } = parseGridSize(grid);
+    const layout = parseGridSize(grid);
 
     const syncUrl = useCallback(
         (updates: Record<string, string>) => {
@@ -94,7 +113,7 @@ export function SemaninhaClient({
             const heavy = isHeavySemaninhaLoad(targetDays, targetGrid);
 
             if (heavy) {
-                setLoadingMessage(getSemaninhaLoadingMessage(targetDays, targetGrid));
+                setLoadingMessage(resolveLoadingMessage(targetDays, targetGrid, tLoading));
             }
             setIsFetching(true);
 
@@ -115,7 +134,7 @@ export function SemaninhaClient({
                 }
             }
         },
-        [username, applyAlbumsFromCache]
+        [username, applyAlbumsFromCache, tLoading]
     );
 
     const handleGridChange = (nextGrid: string) => {
@@ -137,7 +156,7 @@ export function SemaninhaClient({
     const showLoading = isFetching && loadingMessage !== null;
 
     return (
-        <div className="grid lg:grid-cols-2 gap-10 items-start">
+        <div className="grid lg:grid-cols-[minmax(260px,300px)_1fr] gap-6 lg:gap-8 items-start">
             <CollageControls
                 grid={grid}
                 days={days}
@@ -171,11 +190,11 @@ export function SemaninhaClient({
                 }}
             />
 
-            <div className="relative">
+            <div className="relative overflow-hidden rounded-xl">
                 <ExportPanel filename={`semaninha-${username}-${grid}.png`}>
                     <CollageGrid
                         albums={albums}
-                        gridSize={gridSize}
+                        layout={layout}
                         showLabels={showLabels}
                         gap={gap}
                         radius={radius}
@@ -187,8 +206,8 @@ export function SemaninhaClient({
                 {showLoading && (
                     <div
                         className={cn(
-                            'absolute inset-0 z-20 flex items-center justify-center',
-                            'rounded-xl bg-neutral-950/75 backdrop-blur-md border border-white/5'
+                            'absolute inset-0 z-20 flex items-center justify-center overflow-hidden',
+                            'rounded-xl bg-neutral-950/80 backdrop-blur-md border border-white/5'
                         )}
                         aria-live="polite"
                         aria-busy="true"

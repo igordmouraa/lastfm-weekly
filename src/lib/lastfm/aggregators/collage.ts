@@ -1,18 +1,18 @@
 import { subDays, getUnixTime } from 'date-fns';
 import { getImageUrl } from '@/lib/images';
-import { CollageAlbum, CollageCount, CollageDays, parseDays, parseGridSize } from '@/lib/semaninha-params';
+import { CollageAlbum, CollageDays, parseDays, parseGridSize } from '@/lib/semaninha-params';
 import { resolveAlbumCover, resolveCoversBatch } from '../images';
 import { fetchAllRecentTracks } from '../client';
 import { getTopAlbums } from '../user';
 import { processRecentTracks } from './recent-tracks';
 
-export type { CollageAlbum, CollageCount, CollageDays };
+export type { CollageAlbum, CollageDays };
 export { parseDays, parseGridSize };
 
 export interface CollageOptions {
     username: string;
     days: CollageDays;
-    count: CollageCount;
+    count: number;
     resolveCovers?: boolean;
 }
 

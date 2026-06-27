@@ -1,10 +1,14 @@
 'use client';
 
-import { DaysSelector } from '@/components/hub/GridSelector';
+import { useState, type ReactNode } from 'react';
+import { DaysSelector, GridSelector } from '@/components/hub/GridSelector';
+import { useTranslations } from 'next-intl';
+import { ChevronDown } from 'lucide-react';
+import { controlClass } from '@/components/semaninha/control-styles';
 import { cn } from '@/lib/utils';
 
-export type CollageGap = '0' | '1' | '4';
-export type CollageRadius = '0' | 'md' | 'lg';
+export type CollageGap = '0' | '1' | '4' | '8';
+export type CollageRadius = '0' | 'md' | 'lg' | 'xl';
 export type CollageLabelMode = 'both' | 'artist' | 'album';
 
 interface CollageControlsProps {
@@ -25,41 +29,56 @@ interface CollageControlsProps {
     onLabelModeChange: (mode: CollageLabelMode) => void;
 }
 
-function ToggleGroup<T extends string>({
-    label,
+function ControlLabel({ children }: { children: ReactNode }) {
+    return (
+        <span className="text-[10px] uppercase tracking-widest text-neutral-500 shrink-0">{children}</span>
+    );
+}
+
+function ChipRow<T extends string>({
     options,
     value,
     onChange,
     disabled,
 }: {
-    label: string;
     options: { value: T; label: string }[];
     value: T;
     onChange: (v: T) => void;
     disabled?: boolean;
 }) {
     return (
-        <div className="space-y-3">
-            <p className="text-xs uppercase tracking-widest text-neutral-500">{label}</p>
-            <div className="flex flex-wrap gap-2">
-                {options.map((opt) => (
-                    <button
-                        key={opt.value}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => onChange(opt.value)}
-                        className={cn(
-                            'px-3 py-2 rounded-lg text-sm border transition-colors',
-                            disabled && 'opacity-50 pointer-events-none',
-                            value === opt.value
-                                ? 'bg-red-500/20 border-red-500/50 text-red-400'
-                                : 'border-white/10 text-neutral-400 hover:text-white'
-                        )}
-                    >
-                        {opt.label}
-                    </button>
-                ))}
-            </div>
+        <div className="flex rounded-lg bg-neutral-950/60 p-0.5 border border-white/[0.06] gap-0.5 w-full">
+            {options.map((opt) => (
+                <button
+                    key={opt.value}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onChange(opt.value)}
+                    title={opt.label}
+                    className={cn(
+                        'flex-1 min-w-0 px-1.5 py-1 rounded-md text-[11px] truncate text-center',
+                        controlClass(value === opt.value, 'segment'),
+                        disabled && 'opacity-50 pointer-events-none'
+                    )}
+                >
+                    {opt.label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function StyleRow({
+    label,
+    children,
+}: {
+    label: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className="space-y-1.5 py-2.5 border-b border-white/[0.04] last:border-0">
+            <ControlLabel>{label}</ControlLabel>
+            {children}
         </div>
     );
 }
@@ -81,62 +100,121 @@ export function CollageControls({
     onBorderChange,
     onLabelModeChange,
 }: CollageControlsProps) {
+    const t = useTranslations('semaninha');
+    const hasCustomStyle =
+        showLabels || gap !== '0' || radius !== '0' || !showBorder || labelMode !== 'both';
+    const [styleOpen, setStyleOpen] = useState(hasCustomStyle);
+
     return (
-        <div className={cn('space-y-5 bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-xl p-6', disabled && 'opacity-60')}>
-            <ToggleGroup label="Grade" options={[{ value: '3x3', label: '3×3' }, { value: '5x5', label: '5×5' }, { value: '10x10', label: '10×10' }]} value={grid} onChange={onGridChange} disabled={disabled} />
-            <div className="space-y-3">
-                <p className="text-xs uppercase tracking-widest text-neutral-500">Período</p>
-                <DaysSelector value={days} onChange={onDaysChange} disabled={disabled} />
-            </div>
-            <ToggleGroup
-                label="Nomes nas capas"
-                options={[{ value: 'true', label: 'Com nomes' }, { value: 'false', label: 'Sem nomes' }]}
-                value={showLabels ? 'true' : 'false'}
-                onChange={(v) => onLabelsChange(v === 'true')}
-                disabled={disabled}
-            />
-            {showLabels && (
-                <ToggleGroup
-                    label="Exibir nos rótulos"
-                    options={[
-                        { value: 'both', label: 'Artista + álbum' },
-                        { value: 'artist', label: 'Só artista' },
-                        { value: 'album', label: 'Só álbum' },
-                    ]}
-                    value={labelMode}
-                    onChange={onLabelModeChange}
-                    disabled={disabled}
-                />
+        <div
+            className={cn(
+                'bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden',
+                disabled && 'opacity-60 pointer-events-none'
             )}
-            <ToggleGroup
-                label="Espaçamento"
-                options={[
-                    { value: '0', label: 'Nenhum' },
-                    { value: '1', label: 'Fino' },
-                    { value: '4', label: 'Médio' },
-                ]}
-                value={gap}
-                onChange={onGapChange}
-                disabled={disabled}
-            />
-            <ToggleGroup
-                label="Cantos"
-                options={[
-                    { value: '0', label: 'Quadrado' },
-                    { value: 'md', label: 'Suave' },
-                    { value: 'lg', label: 'Arredondado' },
-                ]}
-                value={radius}
-                onChange={onRadiusChange}
-                disabled={disabled}
-            />
-            <ToggleGroup
-                label="Borda externa"
-                options={[{ value: 'true', label: 'Com borda' }, { value: 'false', label: 'Sem borda' }]}
-                value={showBorder ? 'true' : 'false'}
-                onChange={(v) => onBorderChange(v === 'true')}
-                disabled={disabled}
-            />
+        >
+            <div className="p-4 space-y-4">
+                <div className="space-y-2">
+                    <ControlLabel>{t('controls.grid')}</ControlLabel>
+                    <GridSelector value={grid} onChange={onGridChange} disabled={disabled} />
+                </div>
+
+                <div className="space-y-2">
+                    <ControlLabel>{t('controls.period')}</ControlLabel>
+                    <DaysSelector value={days} onChange={onDaysChange} disabled={disabled} compact />
+                </div>
+            </div>
+
+            <div className="border-t border-white/[0.06]">
+                <button
+                    type="button"
+                    onClick={() => setStyleOpen((o) => !o)}
+                    className="flex items-center justify-between w-full px-4 py-2.5 text-left hover:bg-white/[0.02] transition-colors"
+                >
+                    <span className="text-xs text-neutral-400">{t('controls.appearance')}</span>
+                    <span className="flex items-center gap-2">
+                        {!styleOpen && hasCustomStyle && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-400/80" aria-hidden />
+                        )}
+                        <ChevronDown
+                            className={cn(
+                                'w-3.5 h-3.5 text-neutral-600 transition-transform',
+                                styleOpen && 'rotate-180'
+                            )}
+                        />
+                    </span>
+                </button>
+
+                {styleOpen && (
+                    <div className="px-4 pb-3 space-y-0">
+                        <StyleRow label={t('controls.labelsOnCovers')}>
+                            <ChipRow
+                                options={[
+                                    { value: 'true', label: t('labels.withNames') },
+                                    { value: 'false', label: t('labels.withoutNames') },
+                                ]}
+                                value={showLabels ? 'true' : 'false'}
+                                onChange={(v) => onLabelsChange(v === 'true')}
+                                disabled={disabled}
+                            />
+                        </StyleRow>
+
+                        {showLabels && (
+                            <StyleRow label={t('controls.labelContent')}>
+                                <ChipRow
+                                    options={[
+                                        { value: 'both', label: t('labels.artistAndAlbum') },
+                                        { value: 'artist', label: t('labels.artistOnly') },
+                                        { value: 'album', label: t('labels.albumOnly') },
+                                    ]}
+                                    value={labelMode}
+                                    onChange={onLabelModeChange}
+                                    disabled={disabled}
+                                />
+                            </StyleRow>
+                        )}
+
+                        <StyleRow label={t('controls.spacing')}>
+                            <ChipRow
+                                options={[
+                                    { value: '0', label: t('spacing.none') },
+                                    { value: '1', label: t('spacing.thin') },
+                                    { value: '4', label: t('spacing.medium') },
+                                    { value: '8', label: t('spacing.large') },
+                                ]}
+                                value={gap}
+                                onChange={onGapChange}
+                                disabled={disabled}
+                            />
+                        </StyleRow>
+
+                        <StyleRow label={t('controls.corners')}>
+                            <ChipRow
+                                options={[
+                                    { value: '0', label: t('corners.square') },
+                                    { value: 'md', label: t('corners.soft') },
+                                    { value: 'lg', label: t('corners.rounded') },
+                                    { value: 'xl', label: t('corners.pill') },
+                                ]}
+                                value={radius}
+                                onChange={onRadiusChange}
+                                disabled={disabled}
+                            />
+                        </StyleRow>
+
+                        <StyleRow label={t('controls.outerBorder')}>
+                            <ChipRow
+                                options={[
+                                    { value: 'true', label: t('border.with') },
+                                    { value: 'false', label: t('border.without') },
+                                ]}
+                                value={showBorder ? 'true' : 'false'}
+                                onChange={(v) => onBorderChange(v === 'true')}
+                                disabled={disabled}
+                            />
+                        </StyleRow>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

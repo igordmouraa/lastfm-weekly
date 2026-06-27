@@ -2,18 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Disc3 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-
-export function getSemaninhaLoadingMessage(days: number, grid: string): string {
-    const isLargeGrid = grid === '10x10';
-    const isLongPeriod = days === 30;
-
-    if (isLargeGrid && isLongPeriod) return 'Grade 10×10 dos últimos 30 dias';
-    if (isLargeGrid) return 'Montando grade 10×10';
-    if (isLongPeriod) return 'Buscando álbuns dos últimos 30 dias';
-    if (days === 15) return 'Varrendo os últimos 15 dias';
-    return 'Atualizando sua grade';
-}
 
 interface SemaninhaLoaderProps {
     message?: string;
@@ -21,22 +11,27 @@ interface SemaninhaLoaderProps {
     size?: 'md' | 'lg';
 }
 
-export function SemaninhaLoader({ message = 'Montando sua grade', className, size = 'md' }: SemaninhaLoaderProps) {
+export function SemaninhaLoader({ message, className, size = 'md' }: SemaninhaLoaderProps) {
+    const t = useTranslations('semaninha.loading');
+    const displayMessage = message ?? t('default');
     const discSize = size === 'lg' ? 'w-[4.5rem] h-[4.5rem]' : 'w-14 h-14';
     const iconSize = size === 'lg' ? 'w-8 h-8' : 'w-7 h-7';
+    const animBox = size === 'lg' ? 'size-[7.5rem]' : 'size-[5.5rem]';
+    const pulseSize = size === 'lg' ? 72 : 56;
+    const dashSize = size === 'lg' ? 84 : 64;
 
     return (
         <div className={cn('flex flex-col items-center justify-center gap-6 text-center', className)}>
-            <div className="relative flex items-center justify-center">
+            <div className={cn('relative flex items-center justify-center overflow-hidden', animBox)}>
                 <motion.div
-                    className="absolute rounded-full border border-red-500/25"
-                    style={{ width: size === 'lg' ? 88 : 72, height: size === 'lg' ? 88 : 72 }}
-                    animate={{ scale: [1, 1.18, 1], opacity: [0.55, 0.08, 0.55] }}
+                    className="absolute rounded-full border border-red-500/20"
+                    style={{ width: pulseSize, height: pulseSize }}
+                    animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0.06, 0.4] }}
                     transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                 />
                 <motion.div
-                    className="absolute rounded-full border border-dashed border-red-500/15"
-                    style={{ width: size === 'lg' ? 104 : 84, height: size === 'lg' ? 104 : 84 }}
+                    className="absolute rounded-full border border-dashed border-red-500/10"
+                    style={{ width: dashSize, height: dashSize }}
                     animate={{ rotate: -360 }}
                     transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
                 />
@@ -45,8 +40,8 @@ export function SemaninhaLoader({ message = 'Montando sua grade', className, siz
                     transition={{ duration: 2.6, repeat: Infinity, ease: 'linear' }}
                     className={cn(
                         discSize,
-                        'rounded-full bg-gradient-to-br from-red-500 via-red-700 to-red-950',
-                        'flex items-center justify-center shadow-xl shadow-red-950/50 ring-1 ring-red-400/20'
+                        'relative z-10 rounded-full bg-gradient-to-br from-red-500 via-red-700 to-red-950',
+                        'flex items-center justify-center ring-1 ring-red-400/25'
                     )}
                 >
                     <Disc3 className={cn(iconSize, 'text-white/95')} />
@@ -54,10 +49,8 @@ export function SemaninhaLoader({ message = 'Montando sua grade', className, siz
             </div>
 
             <div className="space-y-2 max-w-xs">
-                <p className="text-sm font-medium text-white tracking-tight">{message}</p>
-                <p className="text-xs text-neutral-500 leading-relaxed">
-                    Resolvendo capas e montando a collage
-                </p>
+                <p className="text-sm font-medium text-white tracking-tight">{displayMessage}</p>
+                <p className="text-xs text-neutral-500 leading-relaxed">{t('subtitle')}</p>
                 <div className="flex justify-center gap-1 pt-1">
                     {[0, 1, 2].map((i) => (
                         <motion.span
@@ -74,24 +67,28 @@ export function SemaninhaLoader({ message = 'Montando sua grade', className, siz
 }
 
 interface SemaninhaGridSkeletonProps {
-    gridSize?: 3 | 5 | 10;
+    cols?: number;
+    rows?: number;
 }
 
-export function SemaninhaGridSkeleton({ gridSize = 5 }: SemaninhaGridSkeletonProps) {
-    const cells = gridSize * gridSize;
+export function SemaninhaGridSkeleton({ cols = 5, rows = 5 }: SemaninhaGridSkeletonProps) {
+    const cells = cols * rows;
 
     return (
         <div
-            className="grid w-full max-w-lg mx-auto border border-white/8 aspect-square overflow-hidden"
-            style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}
+            className="grid w-full max-w-lg mx-auto border border-white/8 overflow-hidden"
+            style={{
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                aspectRatio: `${cols} / ${rows}`,
+            }}
         >
             {Array.from({ length: cells }).map((_, i) => (
                 <motion.div
                     key={i}
-                    className="bg-neutral-900"
+                    className="aspect-square bg-neutral-900"
                     initial={{ opacity: 0.35 }}
                     animate={{ opacity: [0.35, 0.65, 0.35] }}
-                    transition={{ duration: 1.6, repeat: Infinity, delay: (i % gridSize) * 0.06, ease: 'easeInOut' }}
+                    transition={{ duration: 1.6, repeat: Infinity, delay: (i % cols) * 0.06, ease: 'easeInOut' }}
                 />
             ))}
         </div>
