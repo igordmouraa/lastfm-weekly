@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { NoiseBackground, GradientBlobs } from '@/components/ui/background-elements';
 import { Footer } from '@/components/ui/footer';
 
@@ -11,15 +12,18 @@ interface HubShellProps {
     marqueeBottom?: string[];
 }
 
-const DEFAULT_GENRES = ['ROCK', 'INDIE', 'POP', 'JAZZ', 'MPB', 'HIP HOP', 'SOUL', 'METAL'];
-const DEFAULT_VIBES = ['WEEKSTER', 'WRAPPED', 'CAPSULA', 'GRADE', 'SCROBBLE', 'TAGS', 'CHARTS'];
-
 export function HubShell({
     children,
     showMarquee = false,
-    marqueeTop = DEFAULT_GENRES,
-    marqueeBottom = DEFAULT_VIBES,
+    marqueeTop,
+    marqueeBottom,
 }: HubShellProps) {
+    const t = useTranslations('marketing');
+    const defaultGenres = t.raw('marquee.genres') as string[];
+    const defaultVibes = t.raw('marquee.vibes') as string[];
+    const topItems = marqueeTop ?? defaultGenres;
+    const bottomItems = marqueeBottom ?? defaultVibes;
+
     return (
         <div className="min-h-screen bg-neutral-950 text-white relative overflow-hidden selection:bg-red-500/30 flex flex-col">
             <NoiseBackground />
@@ -27,10 +31,10 @@ export function HubShell({
             {showMarquee && (
                 <>
                     <div className="absolute top-20 w-[120%] -left-[10%] -rotate-3 z-0 mix-blend-overlay pointer-events-none opacity-10">
-                        <MarqueeStatic items={marqueeTop} />
+                        <MarqueeStatic items={topItems} />
                     </div>
                     <div className="absolute bottom-20 w-[120%] -left-[10%] rotate-2 z-0 mix-blend-overlay pointer-events-none opacity-10">
-                        <MarqueeStatic items={marqueeBottom} direction="right" />
+                        <MarqueeStatic items={bottomItems} direction="right" />
                     </div>
                 </>
             )}

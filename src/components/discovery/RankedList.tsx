@@ -1,7 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import { useLocale } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { CoverImage } from '@/components/CoverImage';
+import { getIntlLocale } from '@/lib/i18n/format';
 import { truncateText } from '@/lib/images';
 
 export interface RankedItem {
@@ -19,6 +21,9 @@ interface RankedListProps {
 }
 
 export function RankedList({ items, accent = '#ef4444', linkPrefix, startIndex = 1 }: RankedListProps) {
+    const locale = useLocale();
+    const intlLocale = getIntlLocale(locale);
+
     return (
         <ol className="space-y-0.5">
             {items.map((item, i) => {
@@ -46,7 +51,7 @@ export function RankedList({ items, accent = '#ef4444', linkPrefix, startIndex =
                         </div>
                         {item.playcount && (
                             <span className="text-[11px] text-neutral-600 shrink-0 tabular-nums">
-                                {parseInt(item.playcount, 10).toLocaleString('pt-BR')}
+                                {parseInt(item.playcount, 10).toLocaleString(intlLocale)}
                             </span>
                         )}
                     </div>

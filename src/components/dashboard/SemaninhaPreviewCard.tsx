@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { CoverImage } from '@/components/CoverImage';
 import { CollagePreviewItem } from '@/types/lastfm';
 import { LayoutGrid, ArrowUpRight } from 'lucide-react';
@@ -11,6 +12,7 @@ interface SemaninhaPreviewCardProps {
 }
 
 export function SemaninhaPreviewCard({ albums, username }: SemaninhaPreviewCardProps) {
+    const t = useTranslations('dashboard.semaninha');
     const base = `/${encodeURIComponent(username)}/semaninha?grid=3x3&days=7&labels=0`;
 
     return (
@@ -25,8 +27,8 @@ export function SemaninhaPreviewCard({ albums, username }: SemaninhaPreviewCardP
                         <LayoutGrid className="w-4 h-4 text-red-400" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold">Semaninha</p>
-                        <p className="text-[10px] text-neutral-500">Top 9 · 7 dias</p>
+                        <p className="text-sm font-bold">{t('title')}</p>
+                        <p className="text-[10px] text-neutral-500">{t('subtitle')}</p>
                     </div>
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-neutral-600 group-hover:text-red-400 transition-colors" />
@@ -45,7 +47,7 @@ export function SemaninhaPreviewCard({ albums, username }: SemaninhaPreviewCardP
                 </div>
             </div>
             <p className="text-[10px] text-neutral-600 text-center mt-3 group-hover:text-red-400 transition-colors">
-                Abrir editor
+                {t('openEditor')}
             </p>
         </Link>
     );

@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useLocale, useTranslations } from 'next-intl';
 import { WeeklyData, LastFmTrack, LastFmAlbum, DailyStats } from '@/types/lastfm';
 import { WeeklyStories } from '@/components/wrapped/WeeklyStories';
 import { CoverImage } from '@/components/CoverImage';
@@ -11,6 +11,7 @@ import { useExportPng, ExportPreviewOverlay } from '@/hooks/useExportPng';
 import { Button } from '@/components/ui/button';
 import { getImageUrl, truncateText } from '@/lib/images';
 import { formatTagName } from '@/lib/tags';
+import { getDateFnsLocale } from '@/lib/i18n/format';
 import {
     Download,
     Sparkles,
@@ -54,13 +55,18 @@ function WeekActivityChart({
     dailyStats: DailyStats[];
     busiestDay: { date: string; count: number } | null;
 }) {
+    const t = useTranslations('week.page');
+    const locale = useLocale();
+    const dateLocale = getDateFnsLocale(locale);
+    const dateFormat = locale === 'en-US' ? "EEEE, MMM d" : "EEEE, d 'de' MMM";
+
     if (dailyStats.length === 0) return null;
     const max = Math.max(...dailyStats.map((d) => d.count), 1);
 
     let busiestLabel = '';
     if (busiestDay) {
         try {
-            busiestLabel = format(parseISO(busiestDay.date), "EEEE, d 'de' MMM", { locale: ptBR });
+            busiestLabel = format(parseISO(busiestDay.date), dateFormat, { locale: dateLocale });
         } catch {
             busiestLabel = busiestDay.date;
         }
@@ -69,7 +75,7 @@ function WeekActivityChart({
     return (
         <div className="rounded-xl border border-white/8 bg-neutral-900/40 p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Atividade da semana</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{t('weekActivity')}</p>
                 {busiestDay && busiestDay.count > 0 && (
                     <div className="flex items-center gap-1.5 text-[10px] text-amber-400/90 shrink-0">
                         <Flame className="w-3 h-3" />
@@ -82,7 +88,7 @@ function WeekActivityChart({
                     const height = Math.max(8, Math.round((day.count / max) * 100));
                     let label = day.date;
                     try {
-                        label = format(parseISO(day.date), 'EEE', { locale: ptBR });
+                        label = format(parseISO(day.date), 'EEE', { locale: dateLocale });
                     } catch {
                         label = day.date.slice(-2);
                     }
@@ -97,7 +103,7 @@ function WeekActivityChart({
                                         'w-full max-w-[2rem] rounded-t-sm',
                                         day.count > 0 ? 'bg-gradient-to-t from-red-700 to-red-400' : 'bg-neutral-800'
                                     )}
-                                    title={`${day.count} scrobbles`}
+                                    title={t('dayScrobbles', { count: day.count })}
                                 />
                             </div>
                             <span className="text-[9px] text-neutral-600 uppercase truncate w-full text-center">
@@ -112,6 +118,8 @@ function WeekActivityChart({
 }
 
 function WeekDeltaBadge({ current, previous }: { current: number; previous: number }) {
+    const t = useTranslations('week.delta');
+
     if (previous === 0 && current === 0) return null;
     const delta = current - previous;
     const pct = previous > 0 ? Math.round((delta / previous) * 100) : null;
@@ -120,12 +128,14 @@ function WeekDeltaBadge({ current, previous }: { current: number; previous: numb
         return (
             <span className="inline-flex items-center gap-1 text-[10px] text-neutral-500 bg-white/[0.04] border border-white/8 px-2 py-0.5 rounded-full">
                 <Minus className="w-3 h-3" />
-                igual à semana passada
+                {t('sameAsLastWeek')}
             </span>
         );
     }
 
     const up = delta > 0;
+    const sign = up ? '+' : '';
+
     return (
         <span
             className={cn(
@@ -136,8 +146,14 @@ function WeekDeltaBadge({ current, previous }: { current: number; previous: numb
             )}
         >
             {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {up ? '+' : ''}
-            {delta} scrobbles{pct !== null ? ` (${up ? '+' : ''}${pct}%)` : ''}
+            {pct !== null
+                ? t('scrobblesWithPercent', {
+                      sign,
+                      count: delta,
+                      percentSign: up ? '+' : '',
+                      percent: pct,
+                  })
+                : t('scrobbles', { sign, count: delta })}
         </span>
     );
 }
@@ -148,6 +164,7 @@ function albumArtistName(artist: LastFmAlbum['artist']): string {
 }
 
 function TopAlbumsRow({ albums }: { albums: LastFmAlbum[] }) {
+    const t = useTranslations('week.page');
     const top = albums.slice(0, 4);
     if (top.length === 0) return null;
 
@@ -155,7 +172,7 @@ function TopAlbumsRow({ albums }: { albums: LastFmAlbum[] }) {
         <div className="space-y-3">
             <div className="flex items-center gap-2">
                 <Disc3 className="w-3.5 h-3.5 text-amber-400" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Top álbuns</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{t('topAlbums')}</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {top.map((album, i) => (
@@ -180,6 +197,10 @@ function TopAlbumsRow({ albums }: { albums: LastFmAlbum[] }) {
 
 export function WeekPageClient({ data, username }: WeekPageClientProps) {
     const { exportRef, exportPng, isExporting, previewUrl, clearPreview } = useExportPng();
+    const t = useTranslations('week.page');
+    const tExport = useTranslations('week.export');
+    const tShare = useTranslations('week.share');
+    const tc = useTranslations('common');
     const topArtist = data.artists[0];
     const topTrack = data.tracks[0];
     const estimatedMins = Math.round(data.totalScrobbles * 3.5);
@@ -189,7 +210,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
     const handleShare = async () => {
         const url = `${window.location.origin}/${encodeURIComponent(username)}/week`;
         if (navigator.share) {
-            await navigator.share({ title: 'Minha Cápsula — Weekster Hub', url });
+            await navigator.share({ title: tShare('title'), url });
         } else {
             await navigator.clipboard.writeText(url);
         }
@@ -214,20 +235,17 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                 animate="show"
                 className="grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] xl:grid-cols-[minmax(0,1.15fr)_minmax(380px,440px)] gap-10 xl:gap-14 items-start max-w-[88rem] mx-auto"
             >
-                {/* Painel editorial — desktop esquerda, mobile abaixo da cápsula */}
                 <motion.div variants={fadeUp} className="order-2 lg:order-1 space-y-8 min-w-0">
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 text-pink-400">
                             <Sparkles className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.25em]">Stories semanal</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.25em]">{t('badge')}</span>
                         </div>
                         <div>
                             <h2 className="text-2xl lg:text-3xl font-display font-bold tracking-tight leading-tight">
-                                Sua semana em um card
+                                {t('title')}
                             </h2>
-                            <p className="text-sm text-neutral-500 mt-2 max-w-lg leading-relaxed">
-                                Top faixas, artistas e scrobbles dos últimos 7 dias — pronto para exportar e compartilhar.
-                            </p>
+                            <p className="text-sm text-neutral-500 mt-2 max-w-lg leading-relaxed">{t('subtitle')}</p>
                             <div className="mt-3">
                                 <WeekDeltaBadge
                                     current={data.totalScrobbles}
@@ -241,22 +259,22 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                         <div className="rounded-xl border border-white/8 bg-neutral-900/50 p-4">
                             <Headphones className="w-4 h-4 text-red-400 mb-2" />
                             <p className="text-2xl font-display font-bold tabular-nums">{data.totalScrobbles}</p>
-                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Scrobbles</p>
+                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">{t('stats.scrobbles')}</p>
                         </div>
                         <div className="rounded-xl border border-white/8 bg-neutral-900/50 p-4">
                             <Clock className="w-4 h-4 text-pink-400 mb-2" />
                             <p className="text-2xl font-display font-bold tabular-nums">{estimatedMins}</p>
-                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Min (est.)</p>
+                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">{t('stats.minutes')}</p>
                         </div>
                         <div className="rounded-xl border border-white/8 bg-neutral-900/50 p-4">
                             <Sparkles className="w-4 h-4 text-violet-400 mb-2" />
                             <p className="text-2xl font-display font-bold tabular-nums">{data.uniqueArtistCount}</p>
-                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Artistas</p>
+                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">{t('stats.artists')}</p>
                         </div>
                         <div className="rounded-xl border border-white/8 bg-neutral-900/50 p-4">
                             <Disc3 className="w-4 h-4 text-amber-400 mb-2" />
                             <p className="text-2xl font-display font-bold tabular-nums">{data.uniqueAlbumCount}</p>
-                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">Álbuns</p>
+                            <p className="text-[10px] text-neutral-500 uppercase tracking-wider mt-0.5">{t('stats.albums')}</p>
                         </div>
                     </div>
 
@@ -270,9 +288,9 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                                         className="w-12 h-12 rounded-lg ring-1 ring-white/10 shrink-0"
                                     />
                                     <div className="min-w-0">
-                                        <p className="text-[10px] uppercase tracking-widest text-violet-400 mb-0.5">#1 Artista</p>
+                                        <p className="text-[10px] uppercase tracking-widest text-violet-400 mb-0.5">{tc('rankArtist')}</p>
                                         <p className="text-sm font-bold truncate">{topArtist.name}</p>
-                                        <p className="text-[11px] text-neutral-500">{topArtist.playcount} plays</p>
+                                        <p className="text-[11px] text-neutral-500">{tc('plays', { count: topArtist.playcount ?? 0 })}</p>
                                     </div>
                                 </div>
                             )}
@@ -284,7 +302,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                                         className="w-12 h-12 rounded-lg ring-1 ring-white/10 shrink-0"
                                     />
                                     <div className="min-w-0">
-                                        <p className="text-[10px] uppercase tracking-widest text-sky-400 mb-0.5">#1 Faixa</p>
+                                        <p className="text-[10px] uppercase tracking-widest text-sky-400 mb-0.5">{tc('rankTrack')}</p>
                                         <p className="text-sm font-bold truncate">{truncateText(topTrack.name, 28)}</p>
                                         <p className="text-[11px] text-neutral-500 truncate">{topTrack.artist?.name}</p>
                                     </div>
@@ -299,7 +317,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
 
                     {data.topTags.length > 0 && (
                         <div className="space-y-3">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Som da semana</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{t('soundOfWeek')}</p>
                             <div className="flex flex-wrap gap-2">
                                 {data.topTags.slice(0, 6).map((tag) => (
                                     <Link
@@ -321,7 +339,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                             className="bg-red-600 hover:bg-red-700 font-bold flex-1 sm:flex-none sm:min-w-[200px]"
                         >
                             <Download className="w-4 h-4" />
-                            {isExporting ? 'Gerando PNG...' : 'Baixar cápsula'}
+                            {isExporting ? tExport('generatingPng') : tExport('downloadCapsule')}
                         </Button>
                         <Button
                             type="button"
@@ -330,7 +348,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                             className="border-white/10 bg-transparent hover:bg-white/5"
                         >
                             <Share2 className="w-4 h-4" />
-                            Copiar link
+                            {tc('actions.copyLink')}
                         </Button>
                     </div>
 
@@ -339,7 +357,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                             href={profileHref}
                             className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-white transition-colors"
                         >
-                            Voltar ao dashboard
+                            {tc('actions.backToDashboard')}
                             <ArrowUpRight className="w-3 h-3" />
                         </Link>
                         <Link
@@ -347,12 +365,11 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                             className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-pink-400 transition-colors"
                         >
                             <Grid3x3 className="w-3 h-3" />
-                            Grade semanal
+                            {t('weeklyGridLink')}
                         </Link>
                     </div>
                 </motion.div>
 
-                {/* Palco da cápsula */}
                 <motion.div
                     variants={fadeUp}
                     className="order-1 lg:order-2 flex flex-col items-center lg:sticky lg:top-24 w-full lg:pb-8"
@@ -367,9 +384,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                             </div>
                         </div>
 
-                        <p className="text-center text-[11px] text-neutral-600 mt-4">
-                            Proporção 9:16 · ideal para stories
-                        </p>
+                        <p className="text-center text-[11px] text-neutral-600 mt-4">{t('aspectRatio')}</p>
                     </div>
 
                     <Button
@@ -378,7 +393,7 @@ export function WeekPageClient({ data, username }: WeekPageClientProps) {
                         className="lg:hidden w-full max-w-[400px] mt-5 bg-red-600 hover:bg-red-700 font-bold"
                     >
                         <Download className="w-4 h-4" />
-                        {isExporting ? 'Gerando...' : 'Baixar cápsula PNG'}
+                        {isExporting ? tExport('generating') : tExport('downloadCapsulePng')}
                     </Button>
                 </motion.div>
             </motion.div>

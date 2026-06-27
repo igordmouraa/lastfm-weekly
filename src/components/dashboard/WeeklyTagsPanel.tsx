@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { WeightedTag, LastFmTag } from '@/types/lastfm';
 import { formatTagName } from '@/lib/tags';
 import { cn } from '@/lib/utils';
@@ -21,15 +22,16 @@ interface WeeklyTagsPanelProps {
 }
 
 export function WeeklyTagsPanel({ weeklyTags, profileTags = [] }: WeeklyTagsPanelProps) {
-    const maxCount = Math.max(...weeklyTags.map((t) => t.count), 1);
+    const t = useTranslations('dashboard.tags');
+    const maxCount = Math.max(...weeklyTags.map((tag) => tag.count), 1);
     const hasWeekly = weeklyTags.length > 0;
 
     return (
         <section>
             <header className="mb-6">
-                <h2 className="text-lg font-display font-bold tracking-tight">Seu som</h2>
+                <h2 className="text-lg font-display font-bold tracking-tight">{t('title')}</h2>
                 <p className="text-sm text-neutral-500 mt-0.5">
-                    {hasWeekly ? 'Tags mais ouvidas na semana' : 'Tags do seu perfil'}
+                    {hasWeekly ? t('weekly') : t('profile')}
                 </p>
             </header>
 

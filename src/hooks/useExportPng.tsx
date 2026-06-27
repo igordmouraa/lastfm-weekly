@@ -3,6 +3,7 @@
 import { useRef, useState, ReactNode } from 'react';
 import Image from 'next/image';
 import { domToPng } from 'modern-screenshot';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -49,6 +50,8 @@ interface ExportPreviewOverlayProps {
 }
 
 export function ExportPreviewOverlay({ previewUrl, onClose }: ExportPreviewOverlayProps) {
+    const t = useTranslations('export');
+
     return (
         <AnimatePresence>
             {previewUrl && (
@@ -64,13 +67,13 @@ export function ExportPreviewOverlay({ previewUrl, onClose }: ExportPreviewOverl
                         onClick={(e) => e.stopPropagation()}
                     >
                         <p className="text-sm text-neutral-400 mb-3 text-center">
-                            <span className="text-red-500 font-bold">Segure na imagem</span> para salvar.
+                            <span className="text-red-500 font-bold">{t('holdToSave')}</span> {t('holdToSaveSuffix')}
                         </p>
                         <div className="relative w-full aspect-[9/16] bg-neutral-950 rounded-lg overflow-hidden">
-                            <Image src={previewUrl} alt="Export" fill unoptimized className="object-contain" />
+                            <Image src={previewUrl} alt={t('previewAlt')} fill unoptimized className="object-contain" />
                         </div>
                         <Button onClick={onClose} variant="secondary" className="w-full mt-3">
-                            Fechar
+                            {t('close')}
                         </Button>
                     </div>
                 </motion.div>
@@ -85,8 +88,10 @@ interface ExportPanelProps {
     label?: string;
 }
 
-export function ExportPanel({ filename, children, label = 'Baixar PNG' }: ExportPanelProps) {
+export function ExportPanel({ filename, children, label }: ExportPanelProps) {
+    const t = useTranslations('export');
     const { exportRef, exportPng, isExporting, previewUrl, clearPreview } = useExportPng();
+    const buttonLabel = label ?? t('downloadPng');
 
     return (
         <>
@@ -98,7 +103,7 @@ export function ExportPanel({ filename, children, label = 'Baixar PNG' }: Export
                     className="w-full bg-red-600 hover:bg-red-700 font-bold"
                 >
                     <Download className="w-4 h-4 mr-2" />
-                    {isExporting ? 'Gerando...' : label}
+                    {isExporting ? t('generating') : buttonLabel}
                 </Button>
             </div>
 

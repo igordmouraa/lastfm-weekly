@@ -1,12 +1,19 @@
+'use client';
+
+import { useLocale, useTranslations } from 'next-intl';
 import { ProxyImage } from '@/components/ProxyImage';
 import { LastFmUser } from '@/types/lastfm';
 import { getImageUrl } from '@/lib/images';
+import { getIntlLocale } from '@/lib/i18n/format';
 
 interface UserHeaderProps {
     user: LastFmUser;
 }
 
 export function UserHeader({ user }: UserHeaderProps) {
+    const t = useTranslations('common');
+    const locale = useLocale();
+    const intlLocale = getIntlLocale(locale);
     const avatar = getImageUrl(user.image);
 
     return (
@@ -23,12 +30,12 @@ export function UserHeader({ user }: UserHeaderProps) {
             <div>
                 <h2 className="text-2xl md:text-3xl font-black tracking-tight">{user.name}</h2>
                 <p className="text-neutral-400 text-sm">
-                    {parseInt(user.playcount, 10).toLocaleString('pt-BR')} scrobbles
-                    {user.country && user.country !== 'Unknown' && ` · ${user.country}`}
+                    {parseInt(user.playcount, 10).toLocaleString(intlLocale)} {t('scrobbles')}
+                    {user.country && user.country !== 'Unknown' && t('countrySeparator', { country: user.country })}
                 </p>
                 {user.url && (
                     <a href={user.url} target="_blank" rel="noopener noreferrer" className="text-xs text-red-400 hover:underline">
-                        Ver no Last.fm
+                        {t('actions.viewOnLastfm')}
                     </a>
                 )}
             </div>

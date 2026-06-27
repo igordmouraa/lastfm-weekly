@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
 interface PeriodSelectorProps {
@@ -8,19 +9,19 @@ interface PeriodSelectorProps {
     options?: { value: string; label: string }[];
 }
 
-const DEFAULT_OPTIONS = [
-    { value: '7day', label: '7 dias' },
-    { value: '1month', label: '1 mês' },
-    { value: '3month', label: '3 meses' },
-    { value: '6month', label: '6 meses' },
-    { value: '12month', label: '12 meses' },
-    { value: 'overall', label: 'Sempre' },
-];
+const PERIOD_KEYS = ['7day', '1month', '3month', '6month', '12month', 'overall'] as const;
 
-export function PeriodSelector({ value, onChange, options = DEFAULT_OPTIONS }: PeriodSelectorProps) {
+export function PeriodSelector({ value, onChange, options }: PeriodSelectorProps) {
+    const t = useTranslations('periods');
+    const defaultOptions = PERIOD_KEYS.map((key) => ({
+        value: key,
+        label: t(key),
+    }));
+    const resolvedOptions = options ?? defaultOptions;
+
     return (
         <div className="flex flex-wrap gap-2">
-            {options.map((opt) => (
+            {resolvedOptions.map((opt) => (
                 <button
                     key={opt.value}
                     type="button"

@@ -1,18 +1,21 @@
 'use client';
 
-import Link from 'next/link';
+import { Link, useRouter } from '@/i18n/navigation';
 import { Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useLocale, useTranslations } from 'next-intl';
 import { PeriodWrappedData } from '@/types/lastfm';
 import { CoverImage } from '@/components/CoverImage';
 import { PeriodSelector } from '@/components/hub/PeriodSelector';
 import {
-    WRAPPED_PERIOD_OPTIONS,
+    getWrappedPeriodOptions,
     parseWrappedPeriod,
     getPeriodLabel,
     formatPeriodRange,
 } from '@/lib/lastfm/periods';
+import { getIntlLocale } from '@/lib/i18n/format';
+import type { Locale } from '@/i18n/routing';
 import { getImageUrl, truncateText } from '@/lib/images';
 import { Headphones } from 'lucide-react';
 
@@ -39,6 +42,8 @@ const stagger = {
 };
 
 function TopColumn({ title, accent, items, linkPrefix }: TopColumnProps) {
+    const tc = useTranslations('common');
+
     return (
         <div>
             <div className="flex items-center gap-2 mb-5">
@@ -46,7 +51,7 @@ function TopColumn({ title, accent, items, linkPrefix }: TopColumnProps) {
                 <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: accent }}>
                     {title}
                 </h3>
-                <span className="text-[10px] text-neutral-600 ml-auto">top 10</span>
+                <span className="text-[10px] text-neutral-600 ml-auto">{tc('top10')}</span>
             </div>
             <ol className="space-y-0.5">
                 {items.map((item, i) => {
@@ -94,11 +99,15 @@ function TopColumn({ title, accent, items, linkPrefix }: TopColumnProps) {
 function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const locale = useLocale() as Locale;
+    const t = useTranslations('wrapped');
+    const tc = useTranslations('common');
     const period = parseWrappedPeriod(searchParams.get('period') ?? data.period);
     const base = `/${encodeURIComponent(username)}/wrapped`;
     const avatar = getImageUrl(data.user.image);
-    const periodLabel = getPeriodLabel(period);
-    const dateRange = formatPeriodRange(period);
+    const periodLabel = getPeriodLabel(period, locale);
+    const dateRange = formatPeriodRange(period, locale);
+    const wrappedOptions = getWrappedPeriodOptions(locale);
 
     const handlePeriodChange = (p: string) => {
         router.push(`${base}?period=${p}`, { scroll: false });
@@ -135,7 +144,7 @@ function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
                     />
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-0.5">
-                            Wrapped · {periodLabel}
+                            {t('header', { period: periodLabel })}
                         </p>
                         <h1 className="text-2xl font-display font-bold tracking-tight">{data.user.name}</h1>
                         <p className="text-sm text-neutral-500 mt-0.5">{dateRange}</p>
@@ -145,9 +154,9 @@ function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
                     <Headphones className="w-4 h-4 text-red-400 shrink-0 sm:mb-1" />
                     <div>
                         <p className="text-3xl font-display font-bold tabular-nums leading-none">
-                            {data.totalScrobbles.toLocaleString('pt-BR')}
+                            {data.totalScrobbles.toLocaleString(getIntlLocale(locale))}
                         </p>
-                        <p className="text-[11px] text-neutral-600 mt-1">scrobbles no período</p>
+                        <p className="text-[11px] text-neutral-600 mt-1">{tc('scrobblesInPeriod')}</p>
                     </div>
                 </div>
             </motion.header>
@@ -156,15 +165,15 @@ function PeriodWrappedContent({ data, username }: PeriodWrappedHubProps) {
                 <PeriodSelector
                     value={period}
                     onChange={handlePeriodChange}
-                    options={WRAPPED_PERIOD_OPTIONS}
+                    options={wrappedOptions}
                 />
             </motion.div>
 
             <motion.section variants={fadeUp}>
                 <div className="grid lg:grid-cols-3 gap-x-10 gap-y-8">
-                    <TopColumn title="Artistas" accent="#a78bfa" items={artists} linkPrefix="/artist" />
-                    <TopColumn title="Álbuns" accent="#34d399" items={albums} />
-                    <TopColumn title="Faixas" accent="#38bdf8" items={tracks} />
+                    <TopColumn title={t('columns.artists')} accent="#a78bfa" items={artists} linkPrefix="/artist" />
+                    <TopColumn title={t('columns.albums')} accent="#34d399" items={albums} />
+                    <TopColumn title={t('columns.tracks')} accent="#38bdf8" items={tracks} />
                 </div>
             </motion.section>
         </motion.div>

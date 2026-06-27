@@ -1,10 +1,13 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { Disc3 } from 'lucide-react';
 
 export function Footer() {
     const year = new Date().getFullYear();
+    const t = useTranslations('footer');
+    const tc = useTranslations('common');
 
     return (
         <footer className="relative z-10 mt-auto border-t border-white/[0.06]">
@@ -15,16 +18,16 @@ export function Footer() {
                             <Disc3 className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                            <p className="text-sm font-display font-bold tracking-tight">Weekster Hub</p>
+                            <p className="text-sm font-display font-bold tracking-tight">{tc('brand')}</p>
                             <p className="text-[11px] text-neutral-600 mt-0.5">
-                                Dados via{' '}
+                                {tc('dataVia')}{' '}
                                 <a
                                     href="https://www.last.fm"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-neutral-500 hover:text-red-400 transition-colors"
                                 >
-                                    Last.fm API
+                                    {tc('lastfmApi')}
                                 </a>
                             </p>
                         </div>
@@ -32,10 +35,10 @@ export function Footer() {
 
                     <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-neutral-500">
                         <Link href="/charts" className="hover:text-white transition-colors">
-                            Charts
+                            {t('charts')}
                         </Link>
                         <Link href="/tags" className="hover:text-white transition-colors">
-                            Tags
+                            {t('tags')}
                         </Link>
                         <span className="hidden sm:inline text-neutral-800">|</span>
                         <a
@@ -44,14 +47,14 @@ export function Footer() {
                             rel="noopener noreferrer"
                             className="hover:text-red-400 transition-colors"
                         >
-                            Igor Moura
+                            {t('author')}
                         </a>
                     </nav>
                 </div>
 
                 <div className="mt-6 pt-5 border-t border-white/[0.04] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[11px] text-neutral-600">
-                    <p>Não afiliado ao Last.fm. Scrobbles e marcas pertencem aos seus respectivos donos.</p>
-                    <p className="shrink-0 tabular-nums">© {year}</p>
+                    <p>{t('disclaimer')}</p>
+                    <p className="shrink-0 tabular-nums">{tc('copyright', { year })}</p>
                 </div>
             </div>
         </footer>

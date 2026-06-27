@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
+import { Link } from '@/i18n/navigation';
 import { CoverImage } from '@/components/CoverImage';
 import { RankedList } from '@/components/discovery/RankedList';
 import { LastFmTag } from '@/types/lastfm';
@@ -23,11 +24,16 @@ const fadeUp = {
 };
 
 export function ArtistView({ name, heroImage, listeners, playcount, bio, tags, similar }: ArtistViewProps) {
+    const t = useTranslations('discovery.artist');
+
     const similarItems = similar.map((a) => ({
         name: a.name,
         playcount: a.playcount,
         image: a.imageUrl,
     }));
+
+    const listenerCount = parseInt(listeners, 10);
+    const playcountNum = parseInt(playcount, 10);
 
     return (
         <motion.div
@@ -46,11 +52,13 @@ export function ArtistView({ name, heroImage, listeners, playcount, bio, tags, s
                     <div className="absolute -inset-4 bg-red-600/10 rounded-3xl blur-2xl -z-10" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1">Artista</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1">{t('badge')}</p>
                     <h1 className="text-3xl font-display font-bold tracking-tight">{name}</h1>
                     <p className="text-sm text-neutral-500 mt-2">
-                        {parseInt(listeners, 10).toLocaleString('pt-BR')} ouvintes ·{' '}
-                        {parseInt(playcount, 10).toLocaleString('pt-BR')} scrobbles globais
+                        {t('stats', {
+                            listeners: listenerCount,
+                            playcount: playcountNum,
+                        })}
                     </p>
                     {bio && (
                         <p className="text-sm text-neutral-400 mt-4 leading-relaxed line-clamp-4 max-w-2xl">
@@ -78,7 +86,7 @@ export function ArtistView({ name, heroImage, listeners, playcount, bio, tags, s
                     <div className="flex items-center gap-2 mb-5">
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
                         <h2 className="text-xs font-bold uppercase tracking-widest text-violet-400">
-                            Artistas similares
+                            {t('similar')}
                         </h2>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-x-10">

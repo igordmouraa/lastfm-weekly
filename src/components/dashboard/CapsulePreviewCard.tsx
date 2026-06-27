@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { WeeklyData } from '@/types/lastfm';
 import { WeeklyStories } from '@/components/wrapped/WeeklyStories';
 import { Sparkles, ArrowUpRight } from 'lucide-react';
@@ -11,6 +12,7 @@ interface CapsulePreviewCardProps {
 }
 
 export function CapsulePreviewCard({ data, username }: CapsulePreviewCardProps) {
+    const t = useTranslations('dashboard.capsule');
     const exportHref = `/${encodeURIComponent(username)}/week`;
 
     return (
@@ -22,15 +24,15 @@ export function CapsulePreviewCard({ data, username }: CapsulePreviewCardProps) 
                         <Sparkles className="w-4 h-4 text-pink-400" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold">Cápsula</p>
-                        <p className="text-[10px] text-neutral-500">Stories semanal</p>
+                        <p className="text-sm font-bold">{t('title')}</p>
+                        <p className="text-[10px] text-neutral-500">{t('subtitle')}</p>
                     </div>
                 </div>
                 <Link
                     href={exportHref}
                     className="inline-flex items-center gap-1 text-[10px] text-neutral-500 hover:text-pink-400 transition-colors"
                 >
-                    Exportar <ArrowUpRight className="w-3 h-3" />
+                    {t('export')} <ArrowUpRight className="w-3 h-3" />
                 </Link>
             </div>
             <div className="flex-1 flex items-center justify-center relative min-h-[160px]">
@@ -47,7 +49,7 @@ export function CapsulePreviewCard({ data, username }: CapsulePreviewCardProps) 
                 href={exportHref}
                 className="text-[10px] text-neutral-600 text-center mt-2 group-hover:text-pink-400 transition-colors"
             >
-                Ver em tamanho real
+                {t('viewFullSize')}
             </Link>
         </div>
     );

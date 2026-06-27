@@ -1,11 +1,11 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { CoverImage } from '@/components/CoverImage';
 import { NowPlayingData } from '@/lib/lastfm/aggregators/now-playing';
 import { useNowPlaying } from '@/hooks/useNowPlaying';
+import { getDateFnsLocale } from '@/lib/i18n/format';
 import { cn } from '@/lib/utils';
 
 interface NowPlayingCardProps {
@@ -15,6 +15,9 @@ interface NowPlayingCardProps {
 
 export function NowPlayingCard({ username, initial }: NowPlayingCardProps) {
     const data = useNowPlaying(username, initial);
+    const t = useTranslations('common');
+    const locale = useLocale();
+    const dateLocale = getDateFnsLocale(locale);
     const track = data?.track;
     const isLive = data?.isLive ?? false;
 
@@ -28,14 +31,14 @@ export function NowPlayingCard({ username, initial }: NowPlayingCardProps) {
             <div className="relative shrink-0">
                 {isLive && (
                     <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-red-600 text-white z-10">
-                        Ao vivo
+                        {t('live')}
                     </span>
                 )}
-                <CoverImage src={track?.imageUrl} alt={track?.name ?? '?'} className="w-16 h-16 rounded-lg" />
+                <CoverImage src={track?.imageUrl} alt={track?.name ?? t('unknownInitial')} className="w-16 h-16 rounded-lg" />
             </div>
             <div className="min-w-0 flex-1">
                 <p className="text-[10px] uppercase tracking-widest text-neutral-500 mb-1">
-                    {isLive ? 'Ouvindo agora' : 'Última faixa'}
+                    {isLive ? t('nowPlaying') : t('lastTrack')}
                 </p>
                 {track ? (
                     <>
@@ -46,17 +49,17 @@ export function NowPlayingCard({ username, initial }: NowPlayingCardProps) {
                         </p>
                         {!isLive && data?.lastPlayedAt && (
                             <p className="text-xs text-neutral-600 mt-1">
-                                {formatDistanceToNow(data.lastPlayedAt, { addSuffix: true, locale: ptBR })}
+                                {formatDistanceToNow(data.lastPlayedAt, { addSuffix: true, locale: dateLocale })}
                             </p>
                         )}
                         {track.url && (
-                            <Link href={track.url} target="_blank" rel="noopener noreferrer" className="text-xs text-red-400 hover:text-red-300 mt-1 inline-block">
-                                Ver no Last.fm →
-                            </Link>
+                            <a href={track.url} target="_blank" rel="noopener noreferrer" className="text-xs text-red-400 hover:text-red-300 mt-1 inline-block">
+                                {t('actions.viewOnLastfmArrow')}
+                            </a>
                         )}
                     </>
                 ) : (
-                    <p className="text-sm text-neutral-500">Nenhum scrobble recente</p>
+                    <p className="text-sm text-neutral-500">{t('noRecentScrobble')}</p>
                 )}
             </div>
         </div>
