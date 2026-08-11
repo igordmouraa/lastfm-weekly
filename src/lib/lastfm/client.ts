@@ -1,3 +1,6 @@
+import { z } from 'zod';
+import { RecentTracksResponseSchema } from '@/schemas/lastfm';
+
 const API_BASE = 'https://ws.audioscrobbler.com/2.0/';
 
 export class LastFmError extends Error {
@@ -19,7 +22,7 @@ export function asArray<T>(value: T | T[] | undefined | null): T[] {
 export async function fetchLastFm<T>(
     method: string,
     params: Record<string, string>,
-    options?: { revalidate?: number; tags?: string[] }
+    options?: { revalidate?: number; tags?: string[]; schema?: z.ZodType }
 ): Promise<T> {
     const apiKey = process.env.LASTFM_API_KEY;
     if (!apiKey) {
@@ -48,6 +51,14 @@ export async function fetchLastFm<T>(
         throw new LastFmError(Number(data.error), method, data.message);
     }
 
+    if (options?.schema) {
+        const parsed = options.schema.safeParse(data);
+        if (!parsed.success) {
+            console.warn(`[lastfm] Schema diverge em "${method}":`, parsed.error.issues);
+            // retorna dado cru para não quebrar o fluxo
+        }
+    }
+
     return data as T;
 }
 
@@ -64,7 +75,11 @@ export async function fetchAllRecentTracks(
         const data = await fetchLastFm<import('@/types/lastfm').RecentTracksResponse>(
             'user.getRecentTracks',
             { user, from, to, page: String(page), limit: '1000' },
-            { revalidate: 120, tags: [`lastfm:user:${user}:recent`] }
+            {
+                revalidate: 120,
+                tags: [`lastfm:user:${user}:recent`],
+                schema: RecentTracksResponseSchema,
+            }
         );
         all.push(...asArray(data.recenttracks.track));
         totalPages = parseInt(data.recenttracks['@attr'].totalPages, 10) || 1;

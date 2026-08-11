@@ -16,6 +16,11 @@ import {
     TopTagsResponse,
     FriendsResponse,
 } from '@/types/lastfm';
+import {
+    TopArtistsResponseSchema,
+    TopAlbumsResponseSchema,
+    TopTracksResponseSchema,
+} from '@/schemas/lastfm';
 
 export { LastFmError };
 
@@ -32,7 +37,7 @@ export const getTopArtists = cache(async (username: string, period: LastFmPeriod
     const data = await fetchLastFm<TopArtistsResponse>(
         'user.getTopArtists',
         { user: username, period, limit: String(limit) },
-        { revalidate: 600, tags: [`lastfm:user:${username}:top:${period}`] }
+        { revalidate: 600, tags: [`lastfm:user:${username}:top:${period}`], schema: TopArtistsResponseSchema }
     );
     return asArray(data.topartists?.artist);
 });
@@ -41,7 +46,7 @@ export const getTopTracks = cache(async (username: string, period: LastFmPeriod 
     const data = await fetchLastFm<TopTracksResponse>(
         'user.getTopTracks',
         { user: username, period, limit: String(limit) },
-        { revalidate: 600, tags: [`lastfm:user:${username}:top:${period}`] }
+        { revalidate: 600, tags: [`lastfm:user:${username}:top:${period}`], schema: TopTracksResponseSchema }
     );
     return asArray(data.toptracks?.track);
 });
@@ -50,7 +55,7 @@ export const getTopAlbums = cache(async (username: string, period: LastFmPeriod 
     const data = await fetchLastFm<TopAlbumsResponse>(
         'user.getTopAlbums',
         { user: username, period, limit: String(limit) },
-        { revalidate: 600, tags: [`lastfm:user:${username}:top:${period}`] }
+        { revalidate: 600, tags: [`lastfm:user:${username}:top:${period}`], schema: TopAlbumsResponseSchema }
     );
     return asArray(data.topalbums?.album);
 });

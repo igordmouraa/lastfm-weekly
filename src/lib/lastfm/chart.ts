@@ -10,12 +10,13 @@ import {
     GeoTopArtistsResponse,
     TrackInfoResponse,
 } from '@/types/lastfm';
+import { ArtistInfoResponseSchema, TrackInfoResponseSchema } from '@/schemas/lastfm';
 
 export async function getArtistInfo(name: string) {
     const data = await fetchLastFm<ArtistInfoResponse>(
         'artist.getInfo',
         { artist: name, autocorrect: '1' },
-        { revalidate: 86400, tags: [`lastfm:artist:${name}:info`] }
+        { revalidate: 86400, tags: [`lastfm:artist:${name}:info`], schema: ArtistInfoResponseSchema }
     );
     return data.artist;
 }
@@ -24,7 +25,7 @@ export async function getTrackInfo(artist: string, track: string) {
     const data = await fetchLastFm<TrackInfoResponse>(
         'track.getInfo',
         { artist, track, autocorrect: '1' },
-        { revalidate: 86400, tags: [`lastfm:track:${artist}:${track}:info`] }
+        { revalidate: 86400, tags: [`lastfm:track:${artist}:${track}:info`], schema: TrackInfoResponseSchema }
     );
     return data.track;
 }

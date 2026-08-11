@@ -58,7 +58,7 @@ export async function resolveArtistCover(artist: string, thumb = false): Promise
     return resolveArtistCoverItunes(artist, thumb);
 }
 
-export async function resolveAlbumCover(artist: string, album: string, thumb = false): Promise<string | null> {
+export async function resolveAlbumCoverDeezer(artist: string, album: string, thumb = false): Promise<string | null> {
     try {
         const q = `album:"${album}" artist:"${artist}"`;
         const res = await fetch(
@@ -71,11 +71,34 @@ export async function resolveAlbumCover(artist: string, album: string, thumb = f
         const url = thumb
             ? item?.cover_medium || item?.cover_big
             : item?.cover_xl || item?.cover_big || item?.cover_medium;
-        if (!url) return null;
+        if (!url || isDeezerPlaceholder(url)) return null;
         return url;
     } catch {
         return null;
     }
+}
+
+export async function resolveAlbumCoverItunes(artist: string, album: string, thumb = false): Promise<string | null> {
+    try {
+        const term = `${artist} ${album}`;
+        const res = await fetch(
+            `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=1`,
+            FETCH_OPTS
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        const url = data.results?.[0]?.artworkUrl100 as string | undefined;
+        if (!url) return null;
+        return thumb ? url : url.replace('100x100bb', '600x600bb');
+    } catch {
+        return null;
+    }
+}
+
+export async function resolveAlbumCover(artist: string, album: string, thumb = false): Promise<string | null> {
+    const deezer = await resolveAlbumCoverDeezer(artist, album, thumb);
+    if (deezer) return deezer;
+    return resolveAlbumCoverItunes(artist, album, thumb);
 }
 
 export async function resolveTrackCoverDeezer(artist: string, track: string, thumb = false): Promise<string | null> {
@@ -91,7 +114,7 @@ export async function resolveTrackCoverDeezer(artist: string, track: string, thu
         const url = thumb
             ? item?.album?.cover_medium || item?.album?.cover_big
             : item?.album?.cover_xl || item?.album?.cover_big || item?.album?.cover_medium;
-        if (!url) return null;
+        if (!url || isDeezerPlaceholder(url)) return null;
         return url;
     } catch {
         return null;
