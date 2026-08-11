@@ -16,9 +16,9 @@ jobs:
     timeout-minutes: 15
 
     env:
-      # Placeholders — build não chama a API; session só valida formato
-      LASTFM_API_KEY: ci-dummy-lastfm-api-key
-      SESSION_SECRET: ci-session-secret-must-be-at-least-32-chars
+      # Prefer repo secret when set; dummy key is enough for build (pages soft-fail Last.fm 403)
+      LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY || 'ci-dummy-lastfm-api-key' }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET || 'ci-session-secret-must-be-at-least-32-chars' }}
 
     steps:
       - name: Checkout
