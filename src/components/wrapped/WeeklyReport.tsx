@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { WeeklyData } from "@/types/lastfm";
+import { WeeklyData, LastFmImage } from "@/types/lastfm";
 import { ProxyImage } from '@/components/ProxyImage';
-import { LastFmImage } from "@/types/lastfm";
+import { getImageUrl } from '@/lib/images';
 import { Share2 } from 'lucide-react';
 import {
     RadarChart, PolarGrid, PolarAngleAxis, Radar,
@@ -17,14 +17,6 @@ interface WeeklyReportProps {
     data: WeeklyData;
     username?: string;
 }
-
-const getImageUrl = (images: LastFmImage[]) => {
-    if (!images || !Array.isArray(images)) return null;
-    const mega = images.find((img) => img.size === 'mega')?.['#text'];
-    const extralarge = images.find((img) => img.size === 'extralarge')?.['#text'];
-    const large = images.find((img) => img.size === 'large')?.['#text'];
-    return mega || extralarge || large || null;
-};
 
 const truncateText = (text: string, maxLength: number) => {
     if (!text) return '';
